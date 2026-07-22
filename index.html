@@ -1025,23 +1025,26 @@ body {
   const DRAG_THRESHOLD = 4;
 
   /* ---------- Mouse drag-to-scroll (touch uses native momentum) ---------- */
-  function dragScroll(el) {
-    let down = false, capturing = false, startY = 0, startTop = 0, moved = false, pid = null;
+  function dragScroll(el, horizontal = false) {
+    let down = false, capturing = false, startPos = 0, startScroll = 0, moved = false, pid = null;
     el.addEventListener('pointerdown', (e) => {
       if (e.pointerType !== 'mouse') return;        // leave touch to native scroll
       down = true; capturing = false; moved = false;
-      startY = e.clientY; startTop = el.scrollTop; pid = e.pointerId;
+      startPos = horizontal ? e.clientX : e.clientY; 
+      startScroll = horizontal ? el.scrollLeft : el.scrollTop; 
+      pid = e.pointerId;
     });
     el.addEventListener('pointermove', (e) => {
       if (!down) return;
-      const dy = e.clientY - startY;
+      const d = (horizontal ? e.clientX : e.clientY) - startPos;
       if (!capturing) {
-        if (Math.abs(dy) <= DRAG_THRESHOLD) return; // still a tap, not a drag
+        if (Math.abs(d) <= DRAG_THRESHOLD) return; // still a tap, not a drag
         capturing = true; moved = true;
         try { el.setPointerCapture(pid); } catch (_) {}
         el.style.cursor = 'grabbing';
       }
-      el.scrollTop = startTop - dy;
+      if (horizontal) el.scrollLeft = startScroll - d;
+      else el.scrollTop = startScroll - d;
     });
     const up = () => {
       if (!down) return;
