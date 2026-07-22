@@ -438,6 +438,7 @@ body {
   .searchrow { display:none; align-items:center; gap:8px; padding:8px 12px 10px; border-bottom:1px solid var(--line); }
   #fileScreen.searching .crumbs { display:none; }
   #fileScreen.searching .searchrow { display:flex; }
+  #fileScreen.searching .savebar { display:none !important; }
 
   /* ============ Shared scenario chrome (Settings pages) ============ */
   .scn { padding:56px 16px 24px; }
@@ -1173,8 +1174,8 @@ body {
     }
     function goUp() { if (path.length > 1) { path.pop(); filter=''; focusIdx = 0; renderFiles(); } }
     $('upBtn').addEventListener('click', goUp);
-    function openSearch() { $('fileScreen').classList.add('searching'); $('searchInput').focus(); }
-    function closeSearch() { $('fileScreen').classList.remove('searching'); $('searchInput').value=''; filter=''; $('searchInput').blur(); focusIdx=0; renderFiles(); }
+    function openSearch() { $('searchInput').placeholder = 'Search in ' + here().name; $('fileScreen').classList.add('searching'); $('searchInput').focus(); }
+    function closeSearch() { $('fileScreen').classList.remove('searching'); $('searchInput').value=''; filter=''; $('searchInput').blur(); focusIdx=0; $('searchInput').placeholder = 'Search this folder'; renderFiles(); }
     $('searchBtn').addEventListener('click', openSearch);
     $('searchCancel').addEventListener('click', closeSearch);
     $('searchInput').addEventListener('input', (e) => { filter = e.target.value; focusIdx = 0; renderFiles(); });
