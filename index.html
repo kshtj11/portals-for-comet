@@ -628,6 +628,14 @@ body {
   .sh-preview .pr-meta { flex:1; min-width:0; }
   .sh-preview .pr-nm { font-size:var(--font); font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .sh-preview .pr-size { font-size:calc(var(--font) * .8125); color:var(--dim); margin-top:2px; }
+  .sh-preview.img-preview {
+    flex-direction:column; align-items:stretch; padding:0; overflow:hidden;
+  }
+  .sh-preview.img-preview .pr-thumb {
+    width:100%; height:120px; object-fit:cover; border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+    background:linear-gradient(135deg, #2a3a4a 0%, #1a2535 100%); display:block;
+  }
+  .sh-preview.img-preview .pr-meta { padding:10px var(--pad); }
 
   /* Section labels */
   .sh-section-label {
@@ -656,30 +664,30 @@ body {
 
   /* Target icon row — horizontally scrollable, touch-draggable */
   .sh-row {
-    display:flex; flex-wrap:nowrap; gap:4px; overflow-x:auto;
+    display:flex; flex-wrap:nowrap; gap:2px; overflow-x:auto;
     padding:0 var(--pad) 8px; touch-action:pan-x; scrollbar-width:none;
   }
   .sh-row::-webkit-scrollbar { display:none; }
 
-  /* Individual target button */
+  /* Individual target button — 76px wide so ~6.5 fit in 508px visible area */
   .sh-item {
-    flex:0 0 auto; width:68px; display:flex; flex-direction:column; align-items:center;
+    flex:0 0 auto; width:76px; display:flex; flex-direction:column; align-items:center;
     gap:6px; cursor:pointer; border:none; background:none; color:var(--text); padding:4px 0;
   }
   .sh-item:active .sh-ic { transform:scale(.92); }
 
-  /* Icon circle — meets --tap (52px > 44px) */
+  /* Icon circle — 56px, well above --tap */
   .sh-ic {
-    width:52px; height:52px; border-radius:50%; background:var(--surface-3);
+    width:56px; height:56px; border-radius:50%; background:var(--surface-3);
     display:flex; align-items:center; justify-content:center;
     color:var(--text); transition:transform .1s;
   }
   .sh-ic svg { width:24px; height:24px; flex-shrink:0; }
   .sh-item.kde .sh-ic { background:#1d4e7a; color:#fff; }
 
-  /* Label under icon */
+  /* Label under icon — 14px as requested */
   .sh-nm {
-    font-size:calc(var(--font) * .6875); text-align:center; line-height:1.2;
+    font-size:14px; text-align:center; line-height:1.2;
     white-space:nowrap; text-overflow:ellipsis; overflow:hidden; width:100%;
   }
 
@@ -881,7 +889,6 @@ body {
             <div class="sh-action-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Path</div>
             <div class="sh-action-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Compress</div>
             <div class="sh-action-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Rename</div>
-            <div class="sh-action-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Delete</div>
           </div>
           
           <div class="sh-section-label">Send to</div>
@@ -1768,8 +1775,26 @@ body {
     
     function updateSharePreview(name, size, type) {
       const preview = $('sharePreview');
-      preview.querySelector('.pr-nm').textContent = name;
-      preview.querySelector('.pr-size').textContent = size + ' \u00b7 ' + type;
+      const isImage = /image|png|jpg|jpeg|gif|svg|webp/i.test(type);
+      if (isImage) {
+        preview.className = 'sh-preview img-preview';
+        preview.innerHTML = `
+          <div class="pr-thumb" style="background:linear-gradient(135deg, #2a3a4a 0%, #3a4a5a 40%, #1a2535 100%); display:flex; align-items:center; justify-content:center;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8aa" stroke-width="1.5" opacity=".5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="pr-meta">
+            <div class="pr-nm">${name}</div>
+            <div class="pr-size">${size} \u00b7 ${type}</div>
+          </div>`;
+      } else {
+        preview.className = 'sh-preview';
+        preview.innerHTML = `
+          <svg class="pr-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          <div class="pr-meta">
+            <div class="pr-nm">${name}</div>
+            <div class="pr-size">${size} \u00b7 ${type}</div>
+          </div>`;
+      }
     }
     
     function openShare() {
