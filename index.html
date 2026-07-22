@@ -563,10 +563,16 @@ body {
   .btcard.timeout .bt-code span { color:#5a5a5a; }
   .btcard.timeout .bt-status { color:var(--text); }
   .btcard .ac-actions { margin-top:14px; }
-  /* ============ 7.5 App Chooser Screen ============ */
+  /* ============ 7.5 App Chooser Modal ============ */
   .appchooser {
-    display:flex; flex-direction:column; padding:20px; height:100%; box-sizing:border-box;
+    position:absolute; z-index:var(--z-popup); top:50%; left:50%; width:90%; max-width:400px;
+    transform:translate(-50%,-50%) scale(.92); opacity:0; pointer-events:none;
+    background:var(--overlay); border:1px solid #333; border-radius:18px;
+    box-shadow:0 30px 80px rgba(0,0,0,.7); padding:20px;
+    transition:opacity .2s, transform .24s cubic-bezier(.34,1.2,.5,1);
+    display:flex; flex-direction:column; max-height: 80vh;
   }
+  .appchooser.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
   .appc-title { font-size:18px; font-weight:700; margin-bottom:12px; text-align:center; }
   .appc-search { margin-bottom:16px; }
   .appc-search input { width:100%; height:44px; border-radius:12px; background:var(--surface); border:1px solid transparent; color:var(--text); padding:0 12px; font-size:15px; outline:none; transition:border-color .15s; }
@@ -586,17 +592,19 @@ body {
 
   /* ============ 7.6 Share Sheet ============ */
   .sharesheet {
-    position:absolute; z-index:var(--z-popup); bottom:0; left:0; width:100%;
+    position:absolute; z-index:var(--z-popup); bottom:0; left:0; right:0; margin:0 auto; width:100%; max-width:540px;
     background:var(--overlay); border-top:1px solid #333; border-radius:24px 24px 0 0;
-    box-shadow:0 -10px 40px rgba(0,0,0,.5); padding:20px 0 30px;
+    box-shadow:0 -10px 40px rgba(0,0,0,.5); padding:16px 0 30px;
     transform:translateY(100%); transition:transform .3s cubic-bezier(.2,.8,.3,1);
+    max-height: 66vh; display: flex; flex-direction: column;
   }
   .sharesheet.open { transform:translateY(0); }
-  .sh-handle { width:36px; height:5px; border-radius:3px; background:#555; margin:0 auto 16px; cursor:grab; }
+  .sh-handle { width:36px; height:5px; border-radius:3px; background:#555; margin:0 auto 16px; cursor:grab; flex:0 0 auto; }
   .sh-handle:active { cursor:grabbing; }
-  .sh-head { padding:0 20px 16px; display:flex; align-items:center; justify-content:space-between; }
-  .sh-title { font-size:18px; font-weight:700; }
-  .sh-file { font-size:14px; color:var(--dim); display:flex; align-items:center; gap:6px; }
+  .sh-head { padding:0 20px 20px; display:flex; flex-direction:column; align-items:center; gap:8px; flex:0 0 auto; }
+  .sh-title { font-size:13px; font-weight:500; color:var(--dim); }
+  .sh-file { font-size:16px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; }
+  .sh-scroll-area { overflow-y:auto; flex:1; }
   .sh-row { display:flex; gap:16px; overflow-x:auto; padding:0 20px 20px; scroll-snap-type:x mandatory; scrollbar-width:none; }
   .sh-row::-webkit-scrollbar { display:none; }
   .sh-item { flex:0 0 auto; width:72px; display:flex; flex-direction:column; align-items:center; gap:8px; scroll-snap-align:start; cursor:pointer; border:none; background:none; color:var(--text); padding:0; }
@@ -706,25 +714,34 @@ body {
       </div>
     </div>
 
-    <!-- ============ 7.5 App Chooser Screen ============ -->
+    <!-- ============ 7.5 App Chooser ============ -->
+    <div class="appchooser" id="appChooser">
+      <div class="appc-title">Open with</div>
+      <div class="appc-search">
+        <input id="appSearch" type="search" placeholder="Search apps" autocomplete="off" spellcheck="false" enterkeyhint="search">
+      </div>
+      <div class="appc-scroll-area">
+        <div class="appc-heading" id="appSuggestedHead">Suggested</div>
+        <div class="appc-grid" id="appGridSuggested"></div>
+        <div class="appc-heading" id="appAllHead">All Apps</div>
+        <div class="appc-grid" id="appGridAll"></div>
+        <button class="app-btn" id="appChooseOther"><div class="app-ic">+</div><div class="app-nm">Choose App</div></button>
+      </div>
+      <label class="appc-always" id="appAlways"><span class="box"></span><span>Always use this app</span></label>
+      <div class="ac-actions">
+        <button class="chip" id="appCancel" type="button">Cancel</button>
+        <button class="chip primary" id="appOpen" type="button" disabled>Open</button>
+      </div>
+    </div>
+
+    <!-- ============ 7.5 App Chooser Screen Mockup ============ -->
     <div class="screen" id="appChooserScreen" hidden>
-      <div class="appchooser" id="appChooser">
-        <div class="appc-title">Open with</div>
-        <div class="appc-search">
-          <input id="appSearch" type="search" placeholder="Search apps" autocomplete="off" spellcheck="false" enterkeyhint="search">
-        </div>
-        <div class="appc-scroll-area">
-          <div class="appc-heading" id="appSuggestedHead">Suggested</div>
-          <div class="appc-grid" id="appGridSuggested"></div>
-          <div class="appc-heading" id="appAllHead">All Apps</div>
-          <div class="appc-grid" id="appGridAll"></div>
-          <button class="app-btn" id="appChooseOther"><div class="app-ic">+</div><div class="app-nm">Choose App</div></button>
-        </div>
-        <label class="appc-always" id="appAlways"><span class="box"></span><span>Always use this app</span></label>
-        <div class="ac-actions">
-          <button class="chip" id="appCancel" type="button">Cancel</button>
-          <button class="chip primary" id="appOpen" type="button" disabled>Open</button>
-        </div>
+      <header class="portalbar">
+        <span class="pb-title">File Manager</span>
+      </header>
+      <nav class="crumbs"><span class="seg">Locations</span><span class="sep">/</span><span class="seg">Documents</span><span class="sep">/</span><span class="seg cur">Downloads</span></nav>
+      <div class="list">
+        <div class="frow focus" id="appChooserTrigger"><span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></span><span class="fmeta"><span class="fname">archive.zip</span><span class="fdate">15 Jul 2025</span></span></div>
       </div>
     </div>
 
@@ -750,11 +767,13 @@ body {
     <div class="sharesheet sheet" id="shareSheet">
       <div class="sh-handle" id="shareHandle"></div>
       <div class="sh-head">
-        <span class="sh-title">Share</span>
-        <span class="sh-file" id="shareFileLabel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg> document.pdf</span>
+        <span class="sh-file" id="shareFileLabel"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg> document.pdf</span>
+        <span class="sh-title">Share with</span>
       </div>
-      <div class="sh-row" id="shareRecent"></div>
-      <div class="sh-row" id="shareApps"></div>
+      <div class="sh-scroll-area">
+        <div class="sh-row" id="shareRecent"></div>
+        <div class="sh-row" id="shareApps"></div>
+      </div>
     </div>
 
     <!-- ============ 7.1 overflow menu ============ -->
@@ -1149,8 +1168,7 @@ body {
       device.classList.remove('kbd-open');
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       if (typeof closeWifiDialog === 'function') closeWifiDialog();
-      if (v.id === 'appchooser') { renderApps(''); }
-      if (v.id === 'share') openShare(); else if (typeof closeShare === 'function') closeShare();
+      if (typeof closeShare === 'function') closeShare();
       // roll the number
       const num = $('navNum');
       num.textContent = v.n;
@@ -1549,16 +1567,23 @@ body {
       renderApps('');
       overlays.open(appChooser);
     }
-    function closeAppChooser() { overlays.close(appChooser); appSearch.blur(); appTarget = null; }
+    function closeAppChooser() { overlays.close(appChooser); appChooser.classList.remove('open'); }
     
     $('appCancel').addEventListener('click', closeAppChooser);
     $('appChooseOther').addEventListener('click', () => snack.show('Browse system for app...'));
-    $('appAlways').addEventListener('click', () => $('appAlways').classList.toggle('on'));
     $('appOpen').addEventListener('click', () => {
-      const sel = appChooser.querySelector('.selected .app-nm');
-      if (sel) snack.show('Opened “' + appTarget + '” in ' + sel.textContent);
+      const selected = appChooser.querySelector('.app-btn.selected .app-nm');
+      if (selected) snack.show('Opening “' + appTarget + '” in ' + selected.textContent);
       closeAppChooser();
     });
+    $('appAlways').addEventListener('click', () => $('appAlways').classList.toggle('on'));
+    
+    const appChooserTrigger = $('appChooserTrigger');
+    if (appChooserTrigger) {
+      appChooserTrigger.addEventListener('click', () => {
+        openAppChooser('archive.zip');
+      });
+    }
 
     /* ============================================================
        7.6 SHARE PORTAL (Bottom Sheet)
