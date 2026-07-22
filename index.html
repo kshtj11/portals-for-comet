@@ -599,29 +599,34 @@ body {
     max-height: 66vh; display: flex; flex-direction: column;
   }
   .sharesheet.open { transform:translateY(0); }
-  .sh-header-row { display:flex; justify-content:space-between; align-items:center; padding:16px 20px 10px; cursor:grab; }
+  .sh-header-row { display:flex; justify-content:space-between; align-items:center; padding:12px 16px 8px; cursor:grab; }
   .sh-header-row:active { cursor:grabbing; }
-  .sh-summary { font-size:16px; font-weight:700; color:var(--text); }
-  .sh-kde-pill { display:flex; align-items:center; gap:6px; background:#1d4e7a; color:#fff; padding:6px 12px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer; }
-  .sh-kde-pill svg { width:14px; height:14px; }
+  .sh-summary { font-size:15px; font-weight:700; color:var(--text); }
+  .sh-kde-pill { display:flex; align-items:center; gap:5px; background:#1d4e7a; color:#fff; padding:5px 10px; border-radius:14px; font-size:11px; font-weight:600; cursor:pointer; }
+  .sh-kde-pill svg { width:12px; height:12px; flex-shrink:0; }
   
-  .sh-preview { margin:10px 20px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:20px; background:var(--surface-3); border-radius:16px; }
-  .sh-preview .pr-ic { color:var(--dim); }
-  .sh-preview .pr-nm { font-size:14px; font-weight:600; color:var(--text); text-align:center; }
+  .sh-preview { margin:4px 16px 12px; display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--surface-3); border-radius:12px; }
+  .sh-preview .pr-ic { color:var(--dim); flex-shrink:0; }
+  .sh-preview .pr-nm { font-size:13px; font-weight:600; color:var(--text); }
+  .sh-preview .pr-size { font-size:11px; color:var(--dim); }
   
-  .sh-action-pills { display:flex; gap:10px; overflow-x:auto; padding:0 20px 20px; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .sh-section-label { font-size:11px; font-weight:600; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; padding:4px 16px 8px; }
+  
+  .sh-action-pills { display:flex; gap:8px; overflow-x:auto; padding:0 16px 12px; scrollbar-width:none; }
   .sh-action-pills::-webkit-scrollbar { display:none; }
-  .sh-action-pill { flex:0 0 auto; display:flex; align-items:center; gap:8px; background:var(--surface-3); padding:10px 16px; border-radius:999px; font-size:14px; font-weight:500; color:var(--text); cursor:pointer; scroll-snap-align:start; }
+  .sh-action-pill { flex:0 0 auto; display:flex; align-items:center; gap:6px; background:var(--surface-3); padding:8px 14px; border-radius:999px; font-size:13px; font-weight:500; color:var(--text); cursor:pointer; }
+  .sh-action-pill svg { flex-shrink:0; }
   .sh-action-pill:active { filter:brightness(1.2); }
   
-  .sh-scroll-area { overflow-y:auto; flex:1; padding-bottom:10px; }
-  .sh-row { display:flex; gap:16px; overflow-x:auto; padding:0 20px 10px; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .sh-scroll-area { overflow-y:auto; flex:1; padding-bottom:6px; }
+  .sh-row { display:flex; flex-wrap:nowrap; gap:6px; overflow-x:auto; padding:0 16px 8px; scrollbar-width:none; }
   .sh-row::-webkit-scrollbar { display:none; }
-  .sh-item { flex:0 0 auto; width:72px; display:flex; flex-direction:column; align-items:center; gap:8px; scroll-snap-align:start; cursor:pointer; border:none; background:none; color:var(--text); padding:0; }
+  .sh-item { flex:0 0 auto; width:64px; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; border:none; background:none; color:var(--text); padding:0; }
   .sh-item:active .sh-ic { transform:scale(.92); }
-  .sh-ic { width:60px; height:60px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; transition:transform .1s; }
+  .sh-ic { width:48px; height:48px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); transition:transform .1s; }
+  .sh-ic svg { width:22px; height:22px; flex-shrink:0; }
   .sh-item.kde .sh-ic { background:#1d4e7a; color:#fff; }
-  .sh-nm { font-size:12px; text-align:center; line-height:1.2; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; width:100%; }
+  .sh-nm { font-size:11px; text-align:center; line-height:1.2; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; width:100%; }
 
   .kde-row { display:flex; align-items:center; gap:14px; padding:12px 20px; border-bottom:1px solid #333; cursor:pointer; color:var(--text); }
   .kde-row:active { background:var(--surface-3); }
@@ -785,17 +790,22 @@ body {
         
         <div class="sh-scroll-area">
           <div class="sh-preview">
-            <svg class="pr-ic" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-            <div class="pr-nm">design_assets.zip</div>
+            <svg class="pr-ic" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            <div>
+              <div class="pr-nm">design_assets.zip</div>
+              <div class="pr-size">24.3 MB · ZIP archive</div>
+            </div>
           </div>
           
+          <div class="sh-section-label">Quick actions</div>
           <div class="sh-action-pills">
-            <div class="sh-action-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link</div>
-            <div class="sh-action-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Save to Files</div>
-            <div class="sh-action-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Ring Device</div>
-            <div class="sh-action-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit</div>
+            <div class="sh-action-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Path</div>
+            <div class="sh-action-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Compress</div>
+            <div class="sh-action-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Rename</div>
+            <div class="sh-action-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Delete</div>
           </div>
           
+          <div class="sh-section-label">Send to</div>
           <div class="sh-row" id="shareApps"></div>
         </div>
       </div>
@@ -1643,13 +1653,16 @@ body {
        7.6 SHARE PORTAL (Bottom Sheet)
        ============================================================ */
     const SHARE_TARGETS = [
-      { id:'desk', name:'Desktop',   ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', kde:true },
-      { id:'mob',  name:'Phone',     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>', kde:true },
-      { id:'drv',  name:'Drive',     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20L12 2z"/></svg>' },
-      { id:'loc',  name:'Files',     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' },
-      { id:'nbr',  name:'Nearby',    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' },
-      { id:'prn',  name:'Print',     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>' },
-      { id:'bt',   name:'Bluetooth', ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>' }
+      { id:'desk', name:'Desktop',    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', kde:true },
+      { id:'mob',  name:'Phone',      ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>', kde:true },
+      { id:'eml',  name:'Email',      ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>' },
+      { id:'mat',  name:'Matrix',     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h3M21 3v18h-3"/><path d="M7 8h2v8H7M10 8h2v8h-2M15 8h2v8h-2"/></svg>' },
+      { id:'nxt',  name:'Nextcloud',  ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>' },
+      { id:'bt',   name:'Bluetooth',  ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>' },
+      { id:'loc',  name:'Files',      ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' },
+      { id:'nbr',  name:'Nearby',     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' },
+      { id:'prn',  name:'Print',      ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>' },
+      { id:'clip', name:'Clipboard',  ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>' }
     ];
     
     const shareSheet = $('shareSheet'), kdeConnectSheet = $('kdeConnectSheet');
@@ -1661,7 +1674,7 @@ body {
         </button>
       `).join('');
       container.querySelectorAll('.sh-item').forEach(btn => {
-        btn.addEventListener('click', () => { snack.show('Shared with ' + btn.querySelector('.sh-nm').textContent); closeShare(); });
+        btn.addEventListener('click', () => { snack.show('Shared via ' + btn.querySelector('.sh-nm').textContent); closeShare(); });
       });
     }
     renderShareItems($('shareApps'), SHARE_TARGETS);
