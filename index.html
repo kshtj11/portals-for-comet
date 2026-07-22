@@ -1766,7 +1766,7 @@ body {
     renderShareItems($('shareApps'), SHARE_TARGETS);
     
     /* Enable Kit.dragScroll on target row for mouse-drag scrolling (touch gets native momentum) */
-    Kit.dragScroll($('shareApps'));
+    Kit.dragScroll($('shareApps'), true);
     
     Kit.sheetDrag($('shareHandle'), shareSheet, () => {
       if (view === 'share') setView('open', true); else closeShare();
