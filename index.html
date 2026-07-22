@@ -592,7 +592,7 @@ body {
 
   /* ============ 7.6 Share Sheet ============ */
   .sharesheet {
-    position:absolute; z-index:var(--z-popup); bottom:0; left:0; right:0; margin:0 auto; width:100%; max-width:540px;
+    position:absolute; top:auto; z-index:var(--z-popup); bottom:0; left:0; right:0; margin:0 auto; width:100%; max-width:540px;
     background:var(--overlay); border-top:1px solid #333; border-radius:24px 24px 0 0;
     box-shadow:0 -10px 40px rgba(0,0,0,.5); padding:16px 0 30px;
     transform:translateY(100%); transition:transform .3s cubic-bezier(.2,.8,.3,1);
@@ -785,7 +785,7 @@ body {
     </div>
 
     <!-- ============ 7.6 Share Context Menu ============ -->
-    <div class="popup" id="shareContextMenu" style="bottom:220px; right:12px; width:160px; transform-origin:bottom right;">
+    <div class="popup" id="shareContextMenu" style="width:160px;">
       <div class="popscroll" style="padding:6px;">
         <div class="menu-item" id="cmShareBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="label">Share</span></div>
         <div class="menu-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span class="label">Delete</span></div>
