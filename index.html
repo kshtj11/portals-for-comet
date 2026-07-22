@@ -563,6 +563,51 @@ body {
   .btcard.timeout .bt-code span { color:#5a5a5a; }
   .btcard.timeout .bt-status { color:var(--text); }
   .btcard .ac-actions { margin-top:14px; }
+  /* ============ 7.5 App Chooser ============ */
+  .appchooser {
+    position:absolute; z-index:var(--z-popup); top:50%; left:50%; width:90%; max-width:400px;
+    transform:translate(-50%,-50%) scale(.92); opacity:0; pointer-events:none;
+    background:var(--overlay); border:1px solid #333; border-radius:18px;
+    box-shadow:0 30px 80px rgba(0,0,0,.7); padding:20px;
+    transition:opacity .2s, transform .24s cubic-bezier(.34,1.2,.5,1);
+    display:flex; flex-direction:column; max-height: 80vh;
+  }
+  .appchooser.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .appc-title { font-size:18px; font-weight:700; margin-bottom:12px; text-align:center; }
+  .appc-search { margin-bottom:16px; }
+  .appc-search input { width:100%; height:44px; border-radius:12px; background:var(--surface); border:1px solid transparent; color:var(--text); padding:0 12px; font-size:15px; outline:none; transition:border-color .15s; }
+  .appc-search input:focus { border-color:var(--hue); }
+  .appc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:16px 12px; overflow-y:auto; padding:4px; flex:1; min-height:100px; }
+  .app-btn { display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; padding:8px 4px; border-radius:12px; border:none; background:none; color:var(--text); }
+  .app-btn:active, .app-btn.selected { background:var(--surface); }
+  .app-btn.selected .app-ic { box-shadow:0 0 0 2px var(--hue); }
+  .app-btn .app-ic { width:52px; height:52px; border-radius:14px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; font-weight:700; }
+  .app-btn .app-nm { font-size:12px; text-align:center; line-height:1.2; word-break:break-word; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .appc-always { display:flex; align-items:center; gap:10px; margin:16px 4px 4px; cursor:pointer; font-size:14px; color:var(--text); user-select:none; }
+  .appc-always .box { flex:0 0 auto; width:20px; height:20px; border-radius:6px; border:2px solid #565656; position:relative; transition:background .12s, border-color .12s; }
+  .appc-always.on .box { background:var(--accent); border-color:var(--accent); }
+  .appc-always.on .box::after { content:""; position:absolute; left:5px; top:1px; width:6px; height:11px; border:solid var(--on-accent); border-width:0 2px 2px 0; transform:rotate(45deg); }
+
+  /* ============ 7.6 Share Sheet ============ */
+  .sharesheet {
+    position:absolute; z-index:var(--z-popup); bottom:0; left:0; width:100%;
+    background:var(--overlay); border-top:1px solid #333; border-radius:24px 24px 0 0;
+    box-shadow:0 -10px 40px rgba(0,0,0,.5); padding:20px 0 30px;
+    transform:translateY(100%); transition:transform .3s cubic-bezier(.2,.8,.3,1);
+  }
+  .sharesheet.open { transform:translateY(0); }
+  .sh-handle { width:36px; height:5px; border-radius:3px; background:#555; margin:0 auto 16px; cursor:grab; }
+  .sh-handle:active { cursor:grabbing; }
+  .sh-head { padding:0 20px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .sh-title { font-size:18px; font-weight:700; }
+  .sh-file { font-size:14px; color:var(--dim); display:flex; align-items:center; gap:6px; }
+  .sh-row { display:flex; gap:16px; overflow-x:auto; padding:0 20px 20px; scroll-snap-type:x mandatory; scrollbar-width:none; }
+  .sh-row::-webkit-scrollbar { display:none; }
+  .sh-item { flex:0 0 auto; width:72px; display:flex; flex-direction:column; align-items:center; gap:8px; scroll-snap-align:start; cursor:pointer; border:none; background:none; color:var(--text); padding:0; }
+  .sh-item:active .sh-ic { transform:scale(.92); }
+  .sh-ic { width:60px; height:60px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; transition:transform .1s; }
+  .sh-item.kde .sh-ic { background:#1d4e7a; color:#fff; }
+  .sh-nm { font-size:12px; text-align:center; line-height:1.2; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; width:100%; }
 </style>
 </head>
 <body>
@@ -660,7 +705,34 @@ body {
         <div class="menu-item" data-view="access"><span class="nn">3</span><span class="label">Access</span></div>
         <div class="menu-item" data-view="wifi"><span class="nn">4</span><span class="label">Wi-Fi Connect</span></div>
         <div class="menu-item" data-view="bt"><span class="nn">5</span><span class="label">Bluetooth Pairing</span></div>
+        <div class="menu-item" data-view="share"><span class="nn">6</span><span class="label">Share</span></div>
       </div>
+    </div>
+
+    <!-- ============ 7.5 App Chooser ============ -->
+    <div class="appchooser" id="appChooser">
+      <div class="appc-title">Open with</div>
+      <div class="appc-search">
+        <input id="appSearch" type="search" placeholder="Search apps" autocomplete="off" spellcheck="false" enterkeyhint="search">
+      </div>
+      <div class="appc-grid" id="appGrid"></div>
+      <label class="appc-always" id="appAlways"><span class="box"></span><span>Always use this app</span></label>
+      <div class="ac-actions">
+        <button class="chip" id="appCancel" type="button">Cancel</button>
+        <button class="chip primary" id="appOpen" type="button" disabled>Open</button>
+      </div>
+    </div>
+
+    <!-- ============ 7.6 Share Sheet ============ -->
+    <div class="screen" id="shareScreen" hidden></div>
+    <div class="sharesheet sheet" id="shareSheet">
+      <div class="sh-handle" id="shareHandle"></div>
+      <div class="sh-head">
+        <span class="sh-title">Share</span>
+        <span class="sh-file" id="shareFileLabel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg> document.pdf</span>
+      </div>
+      <div class="sh-row" id="shareRecent"></div>
+      <div class="sh-row" id="shareApps"></div>
     </div>
 
     <!-- ============ 7.1 overflow menu ============ -->
@@ -1036,7 +1108,8 @@ body {
       { id:'save',   n:2, name:'Save File' },
       { id:'access', n:3, name:'Access' },
       { id:'wifi',   n:4, name:'Wi-Fi Connect' },
-      { id:'bt',     n:5, name:'Bluetooth Pairing' }
+      { id:'bt',     n:5, name:'Bluetooth Pairing' },
+      { id:'share',  n:6, name:'Share Portal' }
     ];
     let view = 'open';
 
@@ -1047,10 +1120,12 @@ body {
       $('accessScreen').hidden = v.id !== 'access';
       $('wifiScreen').hidden   = v.id !== 'wifi';
       $('btScreen').hidden     = v.id !== 'bt';
+      $('shareScreen').hidden  = v.id !== 'share';
       overlays.closeAll();
       device.classList.remove('kbd-open');
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       if (typeof closeWifiDialog === 'function') closeWifiDialog();
+      if (v.id === 'share') openShare(); else if (typeof closeShare === 'function') closeShare();
       // roll the number
       const num = $('navNum');
       num.textContent = v.n;
@@ -1170,7 +1245,7 @@ body {
       focusIdx = i;
       if (node.type === 'dir') { path.push(node); filter=''; focusIdx = 0; if ($('fileScreen').classList.contains('searching')) closeSearch(); renderFiles(); return; }
       if (view === 'save') { $('fileName').value = node.name.replace(/\.[^.]+$/, ''); snack.show('Overwrite “' + node.name + '”? Tap Save to confirm'); return; }
-      snack.show('Returned “' + node.name + '” to ' + APP);
+      openAppChooser(node.name);
     }
     function goUp() { if (path.length > 1) { path.pop(); filter=''; focusIdx = 0; renderFiles(); } }
     $('upBtn').addEventListener('click', goUp);
@@ -1396,17 +1471,109 @@ body {
     });
 
     /* ============================================================
+       7.5 APP CHOOSER
+       ============================================================ */
+    const APPS = [
+      { name: 'Image Viewer', ic: '🖼️' }, { name: 'Comet Media', ic: '🎬' },
+      { name: 'Chrome', ic: 'C' }, { name: 'Document Writer', ic: '📝' },
+      { name: 'Code Editor', ic: '💻' }, { name: 'Archive Manager', ic: '📦' }
+    ];
+    let appTarget = null;
+    const appChooser = $('appChooser'), appGrid = $('appGrid'), appSearch = $('appSearch');
+    
+    function renderApps(filterText) {
+      appGrid.innerHTML = '';
+      const f = (filterText || '').toLowerCase();
+      const list = APPS.filter(a => a.name.toLowerCase().includes(f));
+      list.forEach((app, idx) => {
+        const btn = document.createElement('button'); btn.className = 'app-btn';
+        if (idx === 0) btn.classList.add('selected');
+        btn.innerHTML = '<div class="app-ic">' + app.ic + '</div><div class="app-nm">' + app.name + '</div>';
+        btn.addEventListener('click', () => {
+          appGrid.querySelectorAll('.app-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          $('appOpen').disabled = false;
+        });
+        appGrid.appendChild(btn);
+      });
+      $('appOpen').disabled = list.length === 0;
+    }
+    appSearch.addEventListener('input', (e) => renderApps(e.target.value));
+    
+    function openAppChooser(filename) {
+      appTarget = filename;
+      appSearch.value = '';
+      $('appAlways').classList.remove('on');
+      renderApps('');
+      overlays.open(appChooser);
+    }
+    function closeAppChooser() { overlays.close(appChooser); appSearch.blur(); appTarget = null; }
+    
+    $('appCancel').addEventListener('click', closeAppChooser);
+    $('appAlways').addEventListener('click', () => $('appAlways').classList.toggle('on'));
+    $('appOpen').addEventListener('click', () => {
+      const sel = appGrid.querySelector('.selected .app-nm');
+      if (sel) snack.show('Opened “' + appTarget + '” in ' + sel.textContent);
+      closeAppChooser();
+    });
+
+    /* ============================================================
+       7.6 SHARE PORTAL (Bottom Sheet)
+       ============================================================ */
+    const SHARE_RECENT = [
+      { name: 'Desktop (Mecha)', ic: 'kde' }, { name: 'Pixel Phone', ic: 'kde' },
+      { name: 'AirDrop', ic: 'drop' }, { name: 'Bluetooth', ic: 'bt' }
+    ];
+    const SHARE_APPS = [
+      { name: 'Messages', ic: '💬' }, { name: 'Mail', ic: '✉️' },
+      { name: 'Chrome', ic: 'C' }, { name: 'Notes', ic: '📓' }
+    ];
+    const shareSheet = $('shareSheet');
+    
+    function renderShareItems(container, items) {
+      container.innerHTML = '';
+      items.forEach(it => {
+        const d = document.createElement('button'); d.className = 'sh-item';
+        if (it.ic === 'kde') d.classList.add('kde');
+        let iconHtml = it.ic === 'kde' ? 'K' : (it.ic === 'bt' ? 'B' : (it.ic === 'drop' ? 'A' : it.ic));
+        if (it.ic === 'bt') iconHtml = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10-5 4V3l5 4L7 17"/></svg>';
+        d.innerHTML = '<div class="sh-ic">' + iconHtml + '</div><div class="sh-nm">' + it.name + '</div>';
+        d.addEventListener('click', () => { snack.show('Shared with ' + it.name); if (view === 'share') setView('open', true); else closeShare(); });
+        container.appendChild(d);
+      });
+    }
+    renderShareItems($('shareRecent'), SHARE_RECENT);
+    renderShareItems($('shareApps'), SHARE_APPS);
+    
+    Kit.sheetDrag($('shareHandle'), shareSheet, () => {
+      if (view === 'share') setView('open', true); else closeShare();
+    });
+    
+    function openShare() {
+      shareSheet.classList.add('open');
+      overlays.open(shareSheet);
+    }
+    function closeShare() {
+      shareSheet.classList.remove('open');
+      overlays.close(shareSheet);
+    }
+
+    /* ============================================================
        Shared scrim / edge-back / keyboard shortcuts
        ============================================================ */
     $('scrim').addEventListener('click', () => {
       if (overlays.isOpen(card)) return closeCard();
       if (overlays.isOpen(btCard)) return closeBt();
+      if (overlays.isOpen(appChooser)) return closeAppChooser();
+      if (overlays.isOpen(shareSheet)) { if (view === 'share') setView('open', true); else closeShare(); return; }
       if (overlays.isOpen(wifiDialog) && wifiState !== 'connecting') return closeWifiDialog();  // non-dismissible while connecting
     });
     Kit.edgeBack(device, $('backhint'), () => {
       if (overlays.isOpen(navMenu)) return overlays.closeAll();
       if (overlays.isOpen(card)) return closeCard();
       if (overlays.isOpen(btCard)) return closeBt();
+      if (overlays.isOpen(appChooser)) return closeAppChooser();
+      if (overlays.isOpen(shareSheet)) { if (view === 'share') setView('open', true); else closeShare(); return; }
       if (overlays.isOpen(wifiDialog)) { if (wifiState !== 'connecting') closeWifiDialog(); return; }
       if (overlays.isOpen(menu)) return overlays.closeAll();
       if (view === 'open' || view === 'save') { if ($('fileScreen').classList.contains('searching')) return closeSearch(); goUp(); }
