@@ -1,0 +1,356 @@
+/* =====================================================================
+   DEVICE KIT — design system for 540×620 touch-handheld prototypes
+   Single source of truth for tokens, color/elevation, z-index and
+   every reusable component. Pair with device-kit.js.
+   See DEVICE-KIT.md for the rules and how to build on this.
+   ===================================================================== */
+
+/* ---------- Design tokens ---------- */
+:root,
+.device {
+  /* COLOR — elevation is encoded as LIGHTNESS.
+     The base device is the darkest layer; every layer that floats
+     above it is lighter. Higher on screen (z-index) => lighter bg.
+     Keep everything neutral grayscale (R=G=B); one functional hue. */
+  --bg:        #070707;   /* L0 device base  (lowest, darkest)   */
+  --surface:   #161616;   /* L1 cards, inputs, sheets            */
+  --surface-2: #212121;   /* L2 raised inside a surface          */
+  --surface-3: #2c2c2c;   /* L3 controls, chips, keys            */
+  --overlay:   #242424;   /* L4 floating popups/menus (lightest) */
+
+  --text:      #eaeaea;
+  --dim:       #888888;
+  --line:      #2c2c2c;   /* hairline dividers / borders         */
+  --accent:    #cacaca;   /* neutral accent (grayscale default)  */
+  --on-accent: #161616;   /* text/icon on an accent fill         */
+  --hue:       #7fb0ff;   /* the ONE functional color: links, undo, focus */
+
+  /* METRICS */
+  --radius:    22px;      /* large surfaces                      */
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --tap:       44px;      /* MINIMUM touch target (never smaller)*/
+  --font:      16px;      /* base/page font — user-scalable      */
+  --bar-h:     64px;      /* bottom bar height                   */
+  --pad:       16px;
+
+  /* Z-INDEX SCALE — and the matching elevation color.
+     Read top-down: the higher the layer, the lighter its surface. */
+  --z-base:     0;        /* page / screen        -> --bg        */
+  --z-bar:      10;       /* bottom bar           -> --surface   */
+  --z-sheet:    20;       /* bottom sheet         -> --surface   */
+  --z-scrim:    30;       /* dim behind overlays                 */
+  --z-popup:    40;       /* menus, popups        -> --overlay   */
+  --z-panel:    50;       /* full slide-in panel  -> --bg        */
+  --z-snack:    60;       /* snackbar / toast     -> --surface-3 */
+  --z-keyboard: 70;       /* on-screen keyboard                  */
+  --z-gesture:  80;       /* edge-swipe affordance (topmost)     */
+
+  /* OVERLAY WINDOW SIZING — popups/lists share one height so
+     stacked windows feel consistent. */
+  --window-h:   402px;    /* standard floating-window height     */
+  --window-w:   64%;
+  --window-max: 348px;
+}
+
+/* Accessibility modifiers — toggle on .device */
+.device.hc {                       /* high contrast */
+  --surface:#000; --surface-2:#0b0b0b; --surface-3:#161616; --overlay:#101010;
+  --text:#fff; --dim:#d0d0d0; --line:#ffffff; --accent:#ffffff; --on-accent:#000;
+}
+.device.big { --tap: 56px; }       /* larger tap targets */
+
+/* Elevation helpers — set a layer's background by its rank. */
+.elev-0 { background: var(--bg); }
+.elev-1 { background: var(--surface); }
+.elev-2 { background: var(--surface-2); }
+.elev-3 { background: var(--surface-3); }
+.elev-4 { background: var(--overlay); }
+
+/* ---------- Reset + page (centered device, no scrollbars) ---------- */
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body {
+  background:#000; color:var(--text);
+  font-family:'Sora', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  display:grid; place-items:center;        /* center the device on the page */
+  overflow:hidden;                         /* page never scrolls            */
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+::-webkit-scrollbar { display:none; }       /* scrollbars off, everywhere    */
+* { scrollbar-width:none; }
+
+/* ---------- Device frame ---------- */
+.device {
+  position:relative;
+  width:540px; height:620px;
+  background:var(--bg);
+  overflow:hidden;
+  font-size:var(--font);
+  /* TOUCH MODEL: the frame is pointer-driven. Disable native gestures
+     here, then opt specific scrollers back in with touch-action:pan-y. */
+  touch-action:none;
+  user-select:none; -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- Screen (absolute fill inside the frame) ---------- */
+.screen { position:absolute; inset:0; display:flex; flex-direction:column; }
+
+/* Scrollable content region — opt back into vertical native scroll. */
+.content {
+  flex:1; overflow-y:auto; touch-action:pan-y;
+  -webkit-overflow-scrolling:touch; padding:var(--pad);
+}
+
+/* ---------- Bottom bar ---------- */
+.bottombar {
+  flex:0 0 auto; z-index:var(--z-bar);
+  display:flex; align-items:center; gap:10px;
+  height:var(--bar-h); padding:0 12px;
+  background:var(--surface); border-top:1px solid var(--line);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.bottombar.hidden { transform:translateY(100%); }   /* scroll-to-hide */
+.addr {
+  flex:1; display:flex; align-items:center; gap:8px;
+  height:var(--tap); padding:0 14px; border-radius:999px;
+  background:var(--surface-2); color:var(--text);
+}
+.addr input {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font:inherit; font-size:15px; min-width:0;
+}
+.iconbtn {
+  -webkit-appearance:none; appearance:none; border:none; background:none;
+  flex:0 0 auto; width:var(--tap); height:var(--tap); border-radius:12px;
+  color:var(--text); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .12s, transform .08s;
+}
+.iconbtn:active { transform:scale(.92); background:var(--surface-2); }
+
+/* ---------- Scrim (dims behind overlays) ---------- */
+.scrim {
+  position:absolute; inset:0; z-index:var(--z-scrim);
+  background:rgba(0,0,0,.45);
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.scrim.open { opacity:1; pointer-events:auto; }
+
+/* ---------- Bottom sheet (slides up; drag handle to dismiss) ---------- */
+.sheet {
+  position:absolute; inset:0; z-index:var(--z-sheet);
+  background:var(--surface);           /* one step above the base */
+  display:flex; flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+.sheet.open { transform:translateY(0); }
+.sheet .grab { padding:10px 0 4px; display:flex; justify-content:center; touch-action:none; }
+.sheet .grab i { width:38px; height:5px; border-radius:3px; background:var(--surface-3); }
+.sheet .head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 16px 18px;
+}
+.sheet .head h2 { font-size:18px; font-weight:700; }
+
+/* ---------- Popup menu (scales from a corner; scrollable + fades) ---------- */
+.popup {
+  position:absolute; z-index:var(--z-popup);
+  right:12px; bottom:84px;
+  width:var(--window-w); max-width:var(--window-max);
+  background:var(--overlay);           /* lightest layer */
+  border:1px solid #333333; border-radius:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  overflow:hidden;
+  transform-origin:bottom right;
+  transform:scale(.05); opacity:0; pointer-events:none;
+  transition:transform .22s cubic-bezier(.34,1.2,.5,1), opacity .18s;
+}
+.popup.open { transform:scale(1); opacity:1; pointer-events:auto; }
+.popscroll {                            /* scrollable list area */
+  max-height:330px; overflow-y:auto; touch-action:pan-y; padding-top:8px;
+}
+.menu-item {
+  display:flex; align-items:center; gap:20px;
+  height:56px; padding:0 20px; cursor:pointer;
+  color:var(--text); font-size:18px; transition:background .12s;
+}
+.menu-item:active { background:#2e2e2e; }
+.menu-item svg { flex:0 0 auto; width:25px; height:25px; color:var(--dim); }
+.menu-item .label { flex:1; }
+.menu-item .check {                      /* checkbox indicator (on/off) */
+  flex:0 0 auto; width:22px; height:22px; border-radius:6px;
+  border:2px solid #565656; position:relative; transition:background .12s, border-color .12s;
+}
+.menu-item.on .check { background:var(--accent); border-color:var(--accent); }
+.menu-item.on .check::after {
+  content:""; position:absolute; left:6px; top:2px; width:5px; height:9px;
+  border:solid var(--on-accent); border-width:0 2px 2px 0; transform:rotate(45deg);
+}
+.menu-sep { height:1px; background:#333333; margin:8px 18px; }
+/* Action row pinned under the scroll area */
+.menu-row {
+  display:flex; align-items:center; justify-content:space-around;
+  padding:6px 12px; border-top:1px solid #333333; background:#1c1c1c;
+}
+.menu-row button {
+  -webkit-appearance:none; appearance:none; border:none; padding:0;
+  width:50px; height:50px; border-radius:8px;
+  background:var(--surface-3); color:var(--text); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .08s, background .12s;
+}
+.menu-row button:active { transform:scale(.9); }
+.menu-row button:disabled { opacity:.35; }
+.menu-row button.on { background:var(--accent); color:var(--on-accent); }
+
+/* Scroll fade hints — add .scrollfades wrapper around a scroller. */
+.scrollfades { position:relative; }
+.fade {
+  position:absolute; left:0; right:0; height:26px; z-index:2;
+  pointer-events:none; opacity:0; transition:opacity .15s;
+}
+.fade.top    { top:0;    background:linear-gradient(var(--overlay), rgba(36,36,36,0)); }
+.fade.bottom { bottom:0; background:linear-gradient(rgba(36,36,36,0), var(--overlay)); }
+.fade.show   { opacity:1; }
+
+/* ---------- Slide-in panel (full-screen sub page) ---------- */
+.panel {
+  position:absolute; inset:0; z-index:var(--z-panel);
+  background:var(--bg); display:flex; flex-direction:column;
+  transform:translateX(100%); transition:transform .26s cubic-bezier(.4,0,.2,1);
+}
+.panel.open { transform:translateX(0); }
+.panel .phead {
+  display:flex; align-items:center; gap:10px;
+  padding:14px 12px 12px; border-bottom:1px solid var(--line);
+}
+.panel .phead h2 { font-size:18px; font-weight:700; flex:1; }
+.panel .phead .back {
+  -webkit-appearance:none; appearance:none; border:none; background:none;
+  color:var(--text); cursor:pointer; width:var(--tap); height:var(--tap);
+  display:flex; align-items:center; justify-content:center;
+}
+.panel .body { flex:1; overflow-y:auto; touch-action:pan-y; padding:8px 0 24px; }
+
+/* ---------- List row ---------- */
+.listrow {
+  display:flex; align-items:center; gap:12px;
+  padding:0 18px; min-height:var(--tap); cursor:pointer;
+}
+.listrow:active { background:var(--surface); }
+.listrow .ico {
+  flex:0 0 auto; width:34px; height:34px; border-radius:9px;
+  background:var(--surface-2); display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700;
+}
+.listrow .txt { flex:1; min-width:0; padding:8px 0; }
+.listrow .txt .t { font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.listrow .txt .s { font-size:14px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ---------- Toggle / switch ---------- */
+.toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--surface); border-radius:12px; padding:14px 16px; margin-bottom:10px;
+  cursor:pointer;
+}
+.toggle .tl { font-size:15px; }
+.sw { width:48px; height:28px; border-radius:15px; background:var(--surface-3); position:relative; transition:background .15s; }
+.sw::after { content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left .15s; }
+.toggle.on .sw { background:#5e5e5e; }
+.toggle.on .sw::after { left:23px; }
+
+/* ---------- Segmented control ---------- */
+.segctl { display:inline-flex; gap:6px; background:var(--surface); border-radius:16px; padding:6px; }
+.segctl .seg {
+  -webkit-appearance:none; appearance:none; border:none;
+  min-width:56px; height:44px; padding:0 14px; border-radius:12px;
+  background:transparent; color:var(--dim); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  font:600 14px/1 inherit; transition:background .12s, color .12s;
+}
+.segctl .seg.on { background:var(--surface-3); color:var(--text); }
+
+/* ---------- Chip / pill button ---------- */
+.chip {
+  -webkit-appearance:none; appearance:none; border:none;
+  height:42px; padding:0 16px; border-radius:11px;
+  background:var(--surface-3); color:var(--text); cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  font:600 14px/1 inherit; transition:background .12s, transform .08s;
+}
+.chip:active { transform:scale(.96); background:#383838; }
+.chip.hue { background:#262433; color:var(--hue); }
+
+/* ---------- Snackbar / toast (with optional action) ---------- */
+.snack {
+  position:absolute; z-index:var(--z-snack); left:50%; bottom:120px;
+  transform:translateX(-50%) translateY(14px);
+  display:flex; align-items:center; gap:10px;
+  background:var(--surface-3); color:var(--text);
+  border-radius:14px; padding:10px 8px 10px 18px;
+  box-shadow:0 14px 44px rgba(0,0,0,.55);
+  font-size:14px; white-space:nowrap;
+  opacity:0; pointer-events:none; transition:opacity .18s, transform .18s;
+}
+.snack.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+.snack .action {
+  -webkit-appearance:none; appearance:none; border:none; background:none;
+  color:var(--hue); font-weight:700; font-size:14px; cursor:pointer;
+  padding:8px 12px; border-radius:9px;
+}
+.snack .action:active { background:rgba(255,255,255,.08); }
+
+/* ---------- On-screen keyboard (hardcoded — copied verbatim from the Comet
+   prototype so every app gets the exact same keyboard; only .frame -> .device
+   and the z-index was mapped to the kit scale) ---------- */
+.kbd {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 240px;
+  background: #000; z-index: var(--z-keyboard);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding-top: 10px;
+  transform: translateY(100%);
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+  touch-action: none;
+}
+.device.kbd-open .kbd { transform: translateY(0); }
+.kbd .krow { display: flex; gap: 8px; }
+.kbd .key {
+  -webkit-appearance: none; appearance: none;
+  border: none; outline: none; box-shadow: none; margin: 0; padding: 0;
+  width: 42px; height: 48px; border-radius: 8px;
+  background: #3A3A3A; color: #DDDDDD;
+  font-family: 'Roboto Mono', monospace; font-size: 28px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none;
+}
+.kbd .key:active { background: #5a5a5a; }
+.kbd .key.shift { width: 81px; background: #636363; font-family: 'Inter', sans-serif; font-size: 24px; }
+.kbd .key.back  { width: 81px; background: #474747; font-family: 'Inter', sans-serif; font-size: 24px; }
+.kbd .key.sym   { width: 64px; background: #2D2D2D; font-size: 20px; }
+.kbd .key.fn    { width: 40px; background: #2D2D2D; font-size: 18px; }
+.kbd .key.comma { width: 40px; background: #2D2D2D; font-size: 24px; }
+.kbd .key.space { width: 222px; background: #474747; }
+.kbd .key.dot   { width: 44px; background: #2D2D2D; font-size: 24px; }
+.kbd .key.enter { width: 70px; background: #636363; font-family: 'Inter', sans-serif; font-size: 22px; }
+.kbd.shift-on .key.shift { background: #8a8a8a; color: #fff; }
+
+/* ---------- Edge-swipe back affordance (Android-style bubble) ---------- */
+.backhint {
+  position:absolute; z-index:var(--z-gesture); top:0; left:-44px;
+  width:52px; height:58px; border-radius:4px 32px 32px 4px;
+  background:rgba(255,255,255,.14); backdrop-filter:blur(2px);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text); opacity:0; pointer-events:none;
+}
+.backhint.right { left:auto; right:-44px; border-radius:32px 4px 4px 32px; }
+.backhint.committed { background:rgba(255,255,255,.28); }
+
+/* ---------- Type helpers (scale with --font) ---------- */
+.t-title { font-size:calc(var(--font) * 1.55); font-weight:700; line-height:1.2; }
+.t-h2    { font-size:calc(var(--font) * 1.2);  font-weight:600; }
+.t-body  { font-size:var(--font); color:var(--dim); line-height:1.55; }
+.dim     { color:var(--dim); }
+.hue     { color:var(--hue); }

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Handheld App — Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="device-kit.css">
+<!--
+  STARTER TEMPLATE. Copy this file + device-kit.css + device-kit.js to a new
+  project and build inside #content. Everything below is the minimum runnable
+  shell: a centered device frame, a scrollable content area, a bottom bar,
+  the on-screen keyboard, a scrim, and a snackbar — all wired to Kit.
+  Read DEVICE-KIT.md before extending.
+-->
+</head>
+<body>
+  <div class="device" id="device">
+
+    <!-- ===== Main screen ===== -->
+    <div class="screen" id="main">
+      <div class="content" id="content">
+        <!-- YOUR APP GOES HERE -->
+        <h1 class="t-title">App title</h1>
+        <p class="t-body" style="margin:10px 0 20px">
+          Build your screen inside <code>#content</code>. Tap the field below to
+          raise the keyboard. Everything is pointer-driven, so it behaves the
+          same with touch or a desktop mouse.
+        </p>
+        <div class="addr" style="margin-bottom:16px">
+          <input type="text" placeholder="Type something…" autocomplete="off" spellcheck="false">
+        </div>
+        <button class="chip" id="demoSnack">Show snackbar</button>
+      </div>
+
+      <!-- ===== Bottom bar ===== -->
+      <div class="bottombar" id="bottombar">
+        <form class="addr" id="addrForm">
+          <input type="text" placeholder="Search or enter address" autocomplete="off" spellcheck="false" enterkeyhint="go">
+        </form>
+        <button class="iconbtn" id="menuBtn" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== Scrim ===== -->
+    <div class="scrim" id="scrim"></div>
+
+    <!-- ===== Example popup menu ===== -->
+    <div class="popup" id="menu">
+      <div class="scrollfades">
+        <div class="popscroll" id="menuScroll">
+          <div class="menu-item" data-act="one">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg>
+            <span class="label">Action one</span>
+          </div>
+          <div class="menu-item" data-act="two">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
+            <span class="label">Action two</span>
+          </div>
+          <div class="menu-sep"></div>
+          <div class="menu-item on" data-act="check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+            <span class="label">Toggle me</span>
+            <span class="check"></span>
+          </div>
+        </div>
+        <div class="fade top" id="menuFadeTop"></div>
+        <div class="fade bottom" id="menuFadeBottom"></div>
+      </div>
+    </div>
+
+    <!-- ===== On-screen keyboard (hardcoded — same as the Comet prototype) ===== -->
+    <div class="kbd" id="kbd">
+      <div class="krow">
+        <button class="key" data-k="q">q</button><button class="key" data-k="w">w</button><button class="key" data-k="e">e</button><button class="key" data-k="r">r</button><button class="key" data-k="t">t</button><button class="key" data-k="y">y</button><button class="key" data-k="u">u</button><button class="key" data-k="i">i</button><button class="key" data-k="o">o</button><button class="key" data-k="p">p</button>
+      </div>
+      <div class="krow">
+        <button class="key" data-k="a">a</button><button class="key" data-k="s">s</button><button class="key" data-k="d">d</button><button class="key" data-k="f">f</button><button class="key" data-k="g">g</button><button class="key" data-k="h">h</button><button class="key" data-k="j">j</button><button class="key" data-k="k">k</button><button class="key" data-k="l">l</button>
+      </div>
+      <div class="krow">
+        <button class="key shift" data-k="shift">⇧</button><button class="key" data-k="z">z</button><button class="key" data-k="x">x</button><button class="key" data-k="c">c</button><button class="key" data-k="v">v</button><button class="key" data-k="b">b</button><button class="key" data-k="n">n</button><button class="key" data-k="m">m</button><button class="key back" data-k="back">⌫</button>
+      </div>
+      <div class="krow">
+        <button class="key sym" data-k="sym">?123</button><button class="key fn" data-k="fn">Fn</button><button class="key comma" data-k=",">,</button><button class="key space" data-k=" "></button><button class="key dot" data-k=".">.</button><button class="key enter" data-k="enter"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.64063 13.6406L5.96046e-08 9L4.64063 4.35938V13.6406ZM3.21875 9.84375V8.15625H17.2656V9.84375H3.21875ZM15.625 9.84375V-4.76837e-07H17.3125V9.84375H15.625ZM11.0781 1.6875V-4.76837e-07H17.2656V1.6875H11.0781Z" fill="#DDDDDD"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ===== Snackbar ===== -->
+    <div class="snack" id="snack">
+      <span class="snmsg">Message</span>
+      <button class="action">Undo</button>
+    </div>
+
+    <!-- ===== Edge-swipe back affordance ===== -->
+    <div class="backhint" id="backhint">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </div>
+  </div>
+
+  <script src="device-kit.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    const device = document.getElementById('device');
+
+    // Core wiring
+    Kit.makeKeyboard(device, document.getElementById('kbd'));
+    const snack = Kit.makeSnack(document.getElementById('snack'));
+    const overlays = Kit.makeOverlays(document.getElementById('scrim'));
+    Kit.autoHideBar(document.getElementById('content'), document.getElementById('bottombar'));
+    document.querySelectorAll('.content, .popscroll').forEach(Kit.dragScroll);
+
+    // Popup menu open/close + scroll fades
+    const menu = document.getElementById('menu');
+    const menuFades = Kit.bindFades(document.getElementById('menuScroll'),
+      document.getElementById('menuFadeTop'), document.getElementById('menuFadeBottom'));
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      overlays.open(menu); requestAnimationFrame(menuFades);
+    });
+    menu.querySelectorAll('.menu-item').forEach(it => it.addEventListener('click', () => {
+      if (it.dataset.act === 'check') { it.classList.toggle('on'); return; }
+      overlays.close(menu);
+    }));
+
+    // Edge-back closes any overlay (extend with your own navigation stack)
+    Kit.edgeBack(device, document.getElementById('backhint'), () => overlays.closeAll());
+
+    // Demo snackbar
+    document.getElementById('demoSnack').addEventListener('click', () => {
+      snack.show('Something happened', () => snack.show('Undone'), 'Undo');
+    });
+
+    // Address form submit (no-op placeholder)
+    document.getElementById('addrForm').addEventListener('submit', (e) => {
+      e.preventDefault(); e.target.querySelector('input').blur();
+    });
+  })();
+  </script>
+</body>
+</html>
