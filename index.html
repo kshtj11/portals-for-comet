@@ -754,12 +754,6 @@ body {
         <div class="frow focus" style="position:relative; z-index:1">
           <span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></span>
           <span class="fmeta"><span class="fname">design_assets.zip</span><span class="fdate">12 Aug 2025</span></span>
-          <div class="popup" id="shareContextMenu" style="position:absolute; top:40px; right:20px; width:auto; min-width:160px; transform:none; opacity:1; pointer-events:auto; display:none; z-index:10;">
-            <div class="popscroll" style="padding:6px;">
-              <div class="menu-item" id="cmShareBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="label">Share</span></div>
-              <div class="menu-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span class="label">Delete</span></div>
-            </div>
-          </div>
         </div>
       </div>
       <div class="sharesheet sheet" id="shareSheet">
@@ -787,6 +781,14 @@ body {
         </div>
         <div class="fade top" id="menuFadeTop"></div>
         <div class="fade bottom" id="menuFadeBottom"></div>
+      </div>
+    </div>
+
+    <!-- ============ 7.6 Share Context Menu ============ -->
+    <div class="popup" id="shareContextMenu" style="bottom:220px; right:12px; width:160px; transform-origin:bottom right;">
+      <div class="popscroll" style="padding:6px;">
+        <div class="menu-item" id="cmShareBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="label">Share</span></div>
+        <div class="menu-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span class="label">Delete</span></div>
       </div>
     </div>
 
@@ -1626,12 +1628,21 @@ body {
     
     $('cmShareBtn').addEventListener('click', (e) => {
       e.stopPropagation();
-      $('shareContextMenu').style.display = 'none';
+      overlays.close($('shareContextMenu'));
       openShare();
     });
-    $('shareScreen').querySelector('.frow').addEventListener('click', () => {
-      $('shareContextMenu').style.display = 'block';
+    
+    const shareFrow = $('shareScreen').querySelector('.frow');
+    let pressTimerShare = null, downXYShare = null;
+    shareFrow.addEventListener('pointerdown', (e) => {
+      downXYShare = [e.clientX, e.clientY];
+      pressTimerShare = setTimeout(() => { overlays.open($('shareContextMenu')); }, 420);
     });
+    shareFrow.addEventListener('pointermove', (e) => {
+      if (downXYShare && Math.hypot(e.clientX - downXYShare[0], e.clientY - downXYShare[1]) > 8) clearTimeout(pressTimerShare);
+    });
+    shareFrow.addEventListener('pointerup', () => clearTimeout(pressTimerShare));
+    shareFrow.addEventListener('pointercancel', () => clearTimeout(pressTimerShare));
 
     /* ============================================================
        Shared scrim / edge-back / keyboard shortcuts
@@ -1640,6 +1651,7 @@ body {
       if (overlays.isOpen(card)) return closeCard();
       if (overlays.isOpen(btCard)) return closeBt();
       if (overlays.isOpen(appChooser)) return closeAppChooser();
+      if (overlays.isOpen($('shareContextMenu'))) return overlays.close($('shareContextMenu'));
       if (overlays.isOpen(shareSheet)) { if (view === 'share') setView('open', true); else closeShare(); return; }
       if (overlays.isOpen(wifiDialog) && wifiState !== 'connecting') return closeWifiDialog();  // non-dismissible while connecting
     });
