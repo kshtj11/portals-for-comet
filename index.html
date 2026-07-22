@@ -7,7 +7,365 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../device-kit/device-kit.css">
+<style>
+/* =====================================================================
+   DEVICE KIT — design system for 540×620 touch-handheld prototypes
+   Single source of truth for tokens, color/elevation, z-index and
+   every reusable component. Pair with device-kit.js.
+   See DEVICE-KIT.md for the rules and how to build on this.
+   ===================================================================== */
+
+/* ---------- Design tokens ---------- */
+:root,
+.device {
+  /* COLOR — elevation is encoded as LIGHTNESS.
+     The base device is the darkest layer; every layer that floats
+     above it is lighter. Higher on screen (z-index) => lighter bg.
+     Keep everything neutral grayscale (R=G=B); one functional hue. */
+  --bg:        #070707;   /* L0 device base  (lowest, darkest)   */
+  --surface:   #161616;   /* L1 cards, inputs, sheets            */
+  --surface-2: #212121;   /* L2 raised inside a surface          */
+  --surface-3: #2c2c2c;   /* L3 controls, chips, keys            */
+  --overlay:   #242424;   /* L4 floating popups/menus (lightest) */
+
+  --text:      #eaeaea;
+  --dim:       #888888;
+  --line:      #2c2c2c;   /* hairline dividers / borders         */
+  --accent:    #cacaca;   /* neutral accent (grayscale default)  */
+  --on-accent: #161616;   /* text/icon on an accent fill         */
+  --hue:       #7fb0ff;   /* the ONE functional color: links, undo, focus */
+
+  /* METRICS */
+  --radius:    22px;      /* large surfaces                      */
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --tap:       44px;      /* MINIMUM touch target (never smaller)*/
+  --font:      16px;      /* base/page font — user-scalable      */
+  --bar-h:     64px;      /* bottom bar height                   */
+  --pad:       16px;
+
+  /* Z-INDEX SCALE — and the matching elevation color.
+     Read top-down: the higher the layer, the lighter its surface. */
+  --z-base:     0;        /* page / screen        -> --bg        */
+  --z-bar:      10;       /* bottom bar           -> --surface   */
+  --z-sheet:    20;       /* bottom sheet         -> --surface   */
+  --z-scrim:    30;       /* dim behind overlays                 */
+  --z-popup:    40;       /* menus, popups        -> --overlay   */
+  --z-panel:    50;       /* full slide-in panel  -> --bg        */
+  --z-snack:    60;       /* snackbar / toast     -> --surface-3 */
+  --z-keyboard: 70;       /* on-screen keyboard                  */
+  --z-gesture:  80;       /* edge-swipe affordance (topmost)     */
+
+  /* OVERLAY WINDOW SIZING — popups/lists share one height so
+     stacked windows feel consistent. */
+  --window-h:   402px;    /* standard floating-window height     */
+  --window-w:   64%;
+  --window-max: 348px;
+}
+
+/* Accessibility modifiers — toggle on .device */
+.device.hc {                       /* high contrast */
+  --surface:#000; --surface-2:#0b0b0b; --surface-3:#161616; --overlay:#101010;
+  --text:#fff; --dim:#d0d0d0; --line:#ffffff; --accent:#ffffff; --on-accent:#000;
+}
+.device.big { --tap: 56px; }       /* larger tap targets */
+
+/* Elevation helpers — set a layer's background by its rank. */
+.elev-0 { background: var(--bg); }
+.elev-1 { background: var(--surface); }
+.elev-2 { background: var(--surface-2); }
+.elev-3 { background: var(--surface-3); }
+.elev-4 { background: var(--overlay); }
+
+/* ---------- Reset + page (centered device, no scrollbars) ---------- */
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body {
+  background:#000; color:var(--text);
+  font-family:'Sora', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  display:grid; place-items:center;        /* center the device on the page */
+  overflow:hidden;                         /* page never scrolls            */
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+::-webkit-scrollbar { display:none; }       /* scrollbars off, everywhere    */
+* { scrollbar-width:none; }
+
+/* ---------- Device frame ---------- */
+.device {
+  position:relative;
+  width:540px; height:620px;
+  background:var(--bg);
+  overflow:hidden;
+  font-size:var(--font);
+  /* TOUCH MODEL: the frame is pointer-driven. Disable native gestures
+     here, then opt specific scrollers back in with touch-action:pan-y. */
+  touch-action:none;
+  user-select:none; -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- Screen (absolute fill inside the frame) ---------- */
+.screen { position:absolute; inset:0; display:flex; flex-direction:column; }
+
+/* Scrollable content region — opt back into vertical native scroll. */
+.content {
+  flex:1; overflow-y:auto; touch-action:pan-y;
+  -webkit-overflow-scrolling:touch; padding:var(--pad);
+}
+
+/* ---------- Bottom bar ---------- */
+.bottombar {
+  flex:0 0 auto; z-index:var(--z-bar);
+  display:flex; align-items:center; gap:10px;
+  height:var(--bar-h); padding:0 12px;
+  background:var(--surface); border-top:1px solid var(--line);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.bottombar.hidden { transform:translateY(100%); }   /* scroll-to-hide */
+.addr {
+  flex:1; display:flex; align-items:center; gap:8px;
+  height:var(--tap); padding:0 14px; border-radius:999px;
+  background:var(--surface-2); color:var(--text);
+}
+.addr input {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font:inherit; font-size:15px; min-width:0;
+}
+.iconbtn {
+  -webkit-appearance:none; appearance:none; border:none; background:none;
+  flex:0 0 auto; width:var(--tap); height:var(--tap); border-radius:12px;
+  color:var(--text); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .12s, transform .08s;
+}
+.iconbtn:active { transform:scale(.92); background:var(--surface-2); }
+
+/* ---------- Scrim (dims behind overlays) ---------- */
+.scrim {
+  position:absolute; inset:0; z-index:var(--z-scrim);
+  background:rgba(0,0,0,.45);
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.scrim.open { opacity:1; pointer-events:auto; }
+
+/* ---------- Bottom sheet (slides up; drag handle to dismiss) ---------- */
+.sheet {
+  position:absolute; inset:0; z-index:var(--z-sheet);
+  background:var(--surface);           /* one step above the base */
+  display:flex; flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+.sheet.open { transform:translateY(0); }
+.sheet .grab { padding:10px 0 4px; display:flex; justify-content:center; touch-action:none; }
+.sheet .grab i { width:38px; height:5px; border-radius:3px; background:var(--surface-3); }
+.sheet .head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 16px 18px;
+}
+.sheet .head h2 { font-size:18px; font-weight:700; }
+
+/* ---------- Popup menu (scales from a corner; scrollable + fades) ---------- */
+.popup {
+  position:absolute; z-index:var(--z-popup);
+  right:12px; bottom:84px;
+  width:var(--window-w); max-width:var(--window-max);
+  background:var(--overlay);           /* lightest layer */
+  border:1px solid #333333; border-radius:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  overflow:hidden;
+  transform-origin:bottom right;
+  transform:scale(.05); opacity:0; pointer-events:none;
+  transition:transform .22s cubic-bezier(.34,1.2,.5,1), opacity .18s;
+}
+.popup.open { transform:scale(1); opacity:1; pointer-events:auto; }
+.popscroll {                            /* scrollable list area */
+  max-height:330px; overflow-y:auto; touch-action:pan-y; padding-top:8px;
+}
+.menu-item {
+  display:flex; align-items:center; gap:20px;
+  height:56px; padding:0 20px; cursor:pointer;
+  color:var(--text); font-size:18px; transition:background .12s;
+}
+.menu-item:active { background:#2e2e2e; }
+.menu-item svg { flex:0 0 auto; width:25px; height:25px; color:var(--dim); }
+.menu-item .label { flex:1; }
+.menu-item .check {                      /* checkbox indicator (on/off) */
+  flex:0 0 auto; width:22px; height:22px; border-radius:6px;
+  border:2px solid #565656; position:relative; transition:background .12s, border-color .12s;
+}
+.menu-item.on .check { background:var(--accent); border-color:var(--accent); }
+.menu-item.on .check::after {
+  content:""; position:absolute; left:6px; top:2px; width:5px; height:9px;
+  border:solid var(--on-accent); border-width:0 2px 2px 0; transform:rotate(45deg);
+}
+.menu-sep { height:1px; background:#333333; margin:8px 18px; }
+/* Action row pinned under the scroll area */
+.menu-row {
+  display:flex; align-items:center; justify-content:space-around;
+  padding:6px 12px; border-top:1px solid #333333; background:#1c1c1c;
+}
+.menu-row button {
+  -webkit-appearance:none; appearance:none; border:none; padding:0;
+  width:50px; height:50px; border-radius:8px;
+  background:var(--surface-3); color:var(--text); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .08s, background .12s;
+}
+.menu-row button:active { transform:scale(.9); }
+.menu-row button:disabled { opacity:.35; }
+.menu-row button.on { background:var(--accent); color:var(--on-accent); }
+
+/* Scroll fade hints — add .scrollfades wrapper around a scroller. */
+.scrollfades { position:relative; }
+.fade {
+  position:absolute; left:0; right:0; height:26px; z-index:2;
+  pointer-events:none; opacity:0; transition:opacity .15s;
+}
+.fade.top    { top:0;    background:linear-gradient(var(--overlay), rgba(36,36,36,0)); }
+.fade.bottom { bottom:0; background:linear-gradient(rgba(36,36,36,0), var(--overlay)); }
+.fade.show   { opacity:1; }
+
+/* ---------- Slide-in panel (full-screen sub page) ---------- */
+.panel {
+  position:absolute; inset:0; z-index:var(--z-panel);
+  background:var(--bg); display:flex; flex-direction:column;
+  transform:translateX(100%); transition:transform .26s cubic-bezier(.4,0,.2,1);
+}
+.panel.open { transform:translateX(0); }
+.panel .phead {
+  display:flex; align-items:center; gap:10px;
+  padding:14px 12px 12px; border-bottom:1px solid var(--line);
+}
+.panel .phead h2 { font-size:18px; font-weight:700; flex:1; }
+.panel .phead .back {
+  -webkit-appearance:none; appearance:none; border:none; background:none;
+  color:var(--text); cursor:pointer; width:var(--tap); height:var(--tap);
+  display:flex; align-items:center; justify-content:center;
+}
+.panel .body { flex:1; overflow-y:auto; touch-action:pan-y; padding:8px 0 24px; }
+
+/* ---------- List row ---------- */
+.listrow {
+  display:flex; align-items:center; gap:12px;
+  padding:0 18px; min-height:var(--tap); cursor:pointer;
+}
+.listrow:active { background:var(--surface); }
+.listrow .ico {
+  flex:0 0 auto; width:34px; height:34px; border-radius:9px;
+  background:var(--surface-2); display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700;
+}
+.listrow .txt { flex:1; min-width:0; padding:8px 0; }
+.listrow .txt .t { font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.listrow .txt .s { font-size:14px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ---------- Toggle / switch ---------- */
+.toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--surface); border-radius:12px; padding:14px 16px; margin-bottom:10px;
+  cursor:pointer;
+}
+.toggle .tl { font-size:15px; }
+.sw { width:48px; height:28px; border-radius:15px; background:var(--surface-3); position:relative; transition:background .15s; }
+.sw::after { content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left .15s; }
+.toggle.on .sw { background:#5e5e5e; }
+.toggle.on .sw::after { left:23px; }
+
+/* ---------- Segmented control ---------- */
+.segctl { display:inline-flex; gap:6px; background:var(--surface); border-radius:16px; padding:6px; }
+.segctl .seg {
+  -webkit-appearance:none; appearance:none; border:none;
+  min-width:56px; height:44px; padding:0 14px; border-radius:12px;
+  background:transparent; color:var(--dim); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  font:600 14px/1 inherit; transition:background .12s, color .12s;
+}
+.segctl .seg.on { background:var(--surface-3); color:var(--text); }
+
+/* ---------- Chip / pill button ---------- */
+.chip {
+  -webkit-appearance:none; appearance:none; border:none;
+  height:42px; padding:0 16px; border-radius:11px;
+  background:var(--surface-3); color:var(--text); cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  font:600 14px/1 inherit; transition:background .12s, transform .08s;
+}
+.chip:active { transform:scale(.96); background:#383838; }
+.chip.hue { background:#262433; color:var(--hue); }
+
+/* ---------- Snackbar / toast (with optional action) ---------- */
+.snack {
+  position:absolute; z-index:var(--z-snack); left:50%; bottom:120px;
+  transform:translateX(-50%) translateY(14px);
+  display:flex; align-items:center; gap:10px;
+  background:var(--surface-3); color:var(--text);
+  border-radius:14px; padding:10px 8px 10px 18px;
+  box-shadow:0 14px 44px rgba(0,0,0,.55);
+  font-size:14px; white-space:nowrap;
+  opacity:0; pointer-events:none; transition:opacity .18s, transform .18s;
+}
+.snack.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+.snack .action {
+  -webkit-appearance:none; appearance:none; border:none; background:none;
+  color:var(--hue); font-weight:700; font-size:14px; cursor:pointer;
+  padding:8px 12px; border-radius:9px;
+}
+.snack .action:active { background:rgba(255,255,255,.08); }
+
+/* ---------- On-screen keyboard (hardcoded — copied verbatim from the Comet
+   prototype so every app gets the exact same keyboard; only .frame -> .device
+   and the z-index was mapped to the kit scale) ---------- */
+.kbd {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 240px;
+  background: #000; z-index: var(--z-keyboard);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding-top: 10px;
+  transform: translateY(100%);
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+  touch-action: none;
+}
+.device.kbd-open .kbd { transform: translateY(0); }
+.kbd .krow { display: flex; gap: 8px; }
+.kbd .key {
+  -webkit-appearance: none; appearance: none;
+  border: none; outline: none; box-shadow: none; margin: 0; padding: 0;
+  width: 42px; height: 48px; border-radius: 8px;
+  background: #3A3A3A; color: #DDDDDD;
+  font-family: 'Roboto Mono', monospace; font-size: 28px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none;
+}
+.kbd .key:active { background: #5a5a5a; }
+.kbd .key.shift { width: 81px; background: #636363; font-family: 'Inter', sans-serif; font-size: 24px; }
+.kbd .key.back  { width: 81px; background: #474747; font-family: 'Inter', sans-serif; font-size: 24px; }
+.kbd .key.sym   { width: 64px; background: #2D2D2D; font-size: 20px; }
+.kbd .key.fn    { width: 40px; background: #2D2D2D; font-size: 18px; }
+.kbd .key.comma { width: 40px; background: #2D2D2D; font-size: 24px; }
+.kbd .key.space { width: 222px; background: #474747; }
+.kbd .key.dot   { width: 44px; background: #2D2D2D; font-size: 24px; }
+.kbd .key.enter { width: 70px; background: #636363; font-family: 'Inter', sans-serif; font-size: 22px; }
+.kbd.shift-on .key.shift { background: #8a8a8a; color: #fff; }
+
+/* ---------- Edge-swipe back affordance (Android-style bubble) ---------- */
+.backhint {
+  position:absolute; z-index:var(--z-gesture); top:0; left:-44px;
+  width:52px; height:58px; border-radius:4px 32px 32px 4px;
+  background:rgba(255,255,255,.14); backdrop-filter:blur(2px);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text); opacity:0; pointer-events:none;
+}
+.backhint.right { left:auto; right:-44px; border-radius:32px 4px 4px 32px; }
+.backhint.committed { background:rgba(255,255,255,.28); }
+
+/* ---------- Type helpers (scale with --font) ---------- */
+.t-title { font-size:calc(var(--font) * 1.55); font-weight:700; line-height:1.2; }
+.t-h2    { font-size:calc(var(--font) * 1.2);  font-weight:600; }
+.t-body  { font-size:var(--font); color:var(--dim); line-height:1.55; }
+.dim     { color:var(--dim); }
+.hue     { color:var(--hue); }
+
+</style>
 <!--
   COMET PORTALS — single-file prototype (opens over file://, no server).
   Handheld adaptations of the XDG desktop portals for the Comet Linux device.
@@ -138,26 +496,43 @@
   .ac-err.show { opacity:1; height:auto; margin:8px 2px 0; }
   .accesscard.ok .ac-lock { background:var(--hue); color:#0b1220; }
 
-  /* ============ 7.3 Wi-Fi — inline secret entry in the network list ============ */
-  .wifi-item { border-radius:14px; overflow:hidden; }
+  /* ============ 7.3 Wi-Fi — network list + connect DIALOG ============ */
+  /* one semantic error tint — the only non-grayscale exception, scoped to validation */
+  .device { --err:#df6b62; }
+  .wifi-item { border-radius:12px; }
   .wifi-item + .wifi-item { margin-top:2px; }
-  .wifi-item.open { background:var(--surface); }
-  .wifi-row { display:flex; align-items:center; gap:14px; padding:14px 12px; min-height:56px; cursor:pointer; }
+  .wifi-row { display:flex; align-items:center; gap:14px; padding:14px 12px; min-height:56px; cursor:pointer; border-radius:12px; }
+  .wifi-row:active { background:var(--surface); }
   .wifi-row .sig { flex:0 0 auto; color:var(--text); width:26px; display:flex; justify-content:center; }
   .wifi-row .nm { flex:1; font-size:17px; }
   .wifi-row .rt { flex:0 0 auto; display:flex; align-items:center; gap:12px; color:var(--dim); }
-  .wifi-row .rt .lk { display:flex; }
   .wifi-row .rt .ck { color:var(--hue); display:none; }
   .wifi-item.connected .rt .ck { display:flex; }
   .wifi-item.connected .rt .lk { display:none; }
-  /* inline entry: expands right under the tapped row */
-  .wifi-entry { max-height:0; opacity:0; overflow:hidden; transition:max-height .24s ease, opacity .2s; padding:0 12px; }
-  .wifi-item.open .wifi-entry { max-height:180px; opacity:1; padding:0 12px 14px; }
-  .wifi-entry .row { display:flex; gap:10px; align-items:center; }
-  .wifi-entry .ac-field { flex:1; }
-  .wifi-entry .connect { -webkit-appearance:none; appearance:none; border:none; cursor:pointer; height:50px; padding:0 20px; border-radius:14px; background:var(--accent); color:var(--on-accent); font:700 15px/1 inherit; }
-  .wifi-entry .connect:disabled { opacity:.4; }
-  .wifi-entry .hint { font-size:12.5px; color:var(--dim); margin:9px 2px 0; }
+
+  /* connect dialog — top-anchored modal so the keyboard never covers it */
+  .wifidialog {
+    position:absolute; z-index:var(--z-popup); top:52px; left:50%; width:88%; max-width:380px;
+    transform:translateX(-50%) translateY(-14px) scale(.94); opacity:0; pointer-events:none;
+    background:var(--overlay); border:1px solid #333; border-radius:var(--radius);
+    box-shadow:0 30px 80px rgba(0,0,0,.7); padding:20px;
+    transition:opacity .2s, transform .24s cubic-bezier(.34,1.2,.5,1);
+  }
+  .wifidialog.open { opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0) scale(1); }
+  .wd-head { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .wd-head .wd-sig { flex:0 0 auto; color:var(--text); display:flex; }
+  .wd-head .wd-ssid { flex:1; font-size:18px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .wd-head .wd-lock { flex:0 0 auto; color:var(--dim); display:flex; }
+  .wifidialog.error .ac-field { border-color:var(--err); }
+  .wifidialog.connecting .ac-field { opacity:.55; }
+  .wd-help { font-size:12.5px; color:var(--dim); margin:9px 2px 0; }
+  .wd-help.err { color:var(--err); }
+  .wd-check { display:flex; align-items:center; gap:10px; margin:14px 2px 2px; cursor:pointer; font-size:14px; color:var(--text); user-select:none; }
+  .wd-check .box { flex:0 0 auto; width:20px; height:20px; border-radius:6px; border:2px solid #565656; position:relative; transition:background .12s, border-color .12s; }
+  .wd-check.on .box { background:var(--accent); border-color:var(--accent); }
+  .wd-check.on .box::after { content:""; position:absolute; left:5px; top:1px; width:6px; height:11px; border:solid var(--on-accent); border-width:0 2px 2px 0; transform:rotate(45deg); }
+  .wd-spin { display:inline-block; width:15px; height:15px; vertical-align:-2px; margin-right:7px; border-radius:50%; border:2px solid rgba(0,0,0,.28); border-top-color:var(--on-accent); animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
 
   /* ============ 7.4 Bluetooth — pairing agent (Apple-style passkey) ============ */
   .bt-sec { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--dim); margin:6px 4px 8px; }
@@ -179,9 +554,7 @@
   .btcard.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
   .btcard .bt-ic { width:46px; height:46px; margin:0 auto 12px; border-radius:14px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); }
   .btcard .bt-title { font-size:18px; font-weight:700; }
-  .btcard .bt-sub { font-size:13.5px; color:var(--dim); line-height:1.5; margin:8px 6px 18px; }
-  .btcard .bt-sub b { color:var(--text); font-weight:600; }
-  .bt-code { display:flex; justify-content:center; gap:12px; margin:6px 0 14px; }
+  .bt-code { display:flex; justify-content:center; gap:12px; margin:20px 0 16px; }
   .bt-code span { font:600 46px/1 'Sora',sans-serif; color:var(--text); font-variant-numeric:tabular-nums; min-width:40px; }
   .bt-status { font-size:13px; color:var(--dim); min-height:18px; margin-bottom:4px; }
   .btcard.waiting .bt-status { color:var(--hue); }
@@ -324,11 +697,29 @@
       </div>
     </form>
 
+    <!-- ============ 7.3 Wi-Fi connect dialog ============ -->
+    <form class="wifidialog" id="wifiDialog">
+      <div class="wd-head">
+        <span class="wd-sig" id="wdSig"></span>
+        <span class="wd-ssid" id="wdSsid">Network</span>
+        <span class="wd-lock"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+      </div>
+      <div class="ac-field" id="wdField">
+        <input id="wdPw" type="password" placeholder="Password" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="Wi-Fi password">
+        <button class="ac-eye" id="wdEye" type="button" aria-label="Show password"><svg id="wdEyeIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <div class="wd-help" id="wdHelp">Enter the password.</div>
+      <label class="wd-check on" id="wdAuto"><span class="box"></span><span>Connect automatically</span></label>
+      <div class="ac-actions">
+        <button class="chip" id="wdCancel" type="button">Cancel</button>
+        <button class="chip primary" id="wdConnect" type="submit" disabled>Connect</button>
+      </div>
+    </form>
+
     <!-- ============ 7.4 Bluetooth pairing card ============ -->
     <div class="btcard" id="btCard">
       <div class="bt-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 4V3l5 4L7 17"/></svg></div>
       <div class="bt-title">Bluetooth Pairing Request</div>
-      <div class="bt-sub"><b id="btName">Comet Controller</b> would like to pair. Confirm this code appears on the device.</div>
       <div class="bt-code" id="btCode"><span>4</span><span>8</span><span>2</span><span>6</span></div>
       <div class="bt-status" id="btStatus">Codes must match on both devices.</div>
       <div class="ac-actions">
@@ -350,7 +741,280 @@
     <div class="backhint" id="backhint"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
   </div>
 
-  <script src="../device-kit/device-kit.js"></script>
+  <script>
+/* =====================================================================
+   DEVICE KIT — runtime (Pointer Events only)
+   Exposes a single global: window.Kit
+   Pair with device-kit.css. See DEVICE-KIT.md.
+
+   POINTER RULES (enforced throughout):
+   - Use only pointerdown/move/up/cancel. Never mix in mouse* / touch*.
+   - Capture the pointer ONLY after a movement threshold (~4px) so a tap
+     still reaches child buttons; release on up/cancel.
+   - Swallow the click that immediately follows a real drag.
+   - This makes touch the target while letting a desktop mouse emulate it
+     with the same feel.
+   ===================================================================== */
+(function (global) {
+  "use strict";
+
+  const DRAG_THRESHOLD = 4;
+
+  /* ---------- Mouse drag-to-scroll (touch uses native momentum) ---------- */
+  function dragScroll(el) {
+    let down = false, capturing = false, startY = 0, startTop = 0, moved = false, pid = null;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse') return;        // leave touch to native scroll
+      down = true; capturing = false; moved = false;
+      startY = e.clientY; startTop = el.scrollTop; pid = e.pointerId;
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!down) return;
+      const dy = e.clientY - startY;
+      if (!capturing) {
+        if (Math.abs(dy) <= DRAG_THRESHOLD) return; // still a tap, not a drag
+        capturing = true; moved = true;
+        try { el.setPointerCapture(pid); } catch (_) {}
+        el.style.cursor = 'grabbing';
+      }
+      el.scrollTop = startTop - dy;
+    });
+    const up = () => {
+      if (!down) return;
+      down = false;
+      if (capturing) { try { el.releasePointerCapture(pid); } catch (_) {} }
+      capturing = false; el.style.cursor = '';
+    };
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('click', (e) => {              // swallow the post-drag click
+      if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
+  }
+
+  /* ---------- Scroll fades — show top/bottom gradients on overflow ---------- */
+  function bindFades(scroller, topEl, botEl) {
+    const update = () => {
+      topEl.classList.toggle('show', scroller.scrollTop > 2);
+      botEl.classList.toggle('show',
+        scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 2);
+    };
+    scroller.addEventListener('scroll', update, { passive: true });
+    return update;   // call after rendering content / opening
+  }
+
+  /* ---------- Bottom-sheet drag-to-dismiss ---------- */
+  function sheetDrag(handle, sheet, onDismiss, commit) {
+    commit = commit || 120;
+    let dragging = false, startY = 0, dy = 0, pid = null;
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); dragging = true; startY = e.clientY; dy = 0; pid = e.pointerId;
+      sheet.style.transition = 'none'; try { handle.setPointerCapture(pid); } catch (_) {}
+    });
+    handle.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      dy = Math.max(0, e.clientY - startY);
+      sheet.style.transform = 'translateY(' + dy + 'px)';
+    });
+    const end = () => {
+      if (!dragging) return;
+      dragging = false; sheet.style.transition = ''; sheet.style.transform = '';
+      if (dy > commit && onDismiss) onDismiss();
+    };
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+  }
+
+  /* ---------- Pull-to-dismiss + scroll for a single region (touch & mouse) ----
+     Used when a scroller doubles as a "pull down at the top to close" target.
+     touch-action must be none on the element so we drive it ourselves.       */
+  function pullScroll(el, onDismiss, commit) {
+    commit = commit || 120;
+    let sy = 0, startScroll = 0, pid = null, mode = null, pdy = 0, moved = false;
+    const host = el.closest('.sheet') || el;
+    el.addEventListener('pointerdown', (e) => {
+      sy = e.clientY; startScroll = el.scrollTop; pid = e.pointerId; mode = null; pdy = 0; moved = false;
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (pid === null) return;
+      const dy = e.clientY - sy;
+      if (mode === null) {
+        if (Math.abs(dy) <= DRAG_THRESHOLD) return;
+        moved = true;
+        mode = (dy > 0 && el.scrollTop <= 0) ? 'dismiss' : 'scroll';
+        try { el.setPointerCapture(pid); } catch (_) {}
+        if (mode === 'dismiss') host.style.transition = 'none';
+      }
+      e.preventDefault();
+      if (mode === 'scroll') el.scrollTop = startScroll - dy;
+      else { pdy = Math.max(0, dy); host.style.transform = 'translateY(' + pdy + 'px)'; }
+    });
+    const end = () => {
+      if (pid === null) return;
+      const m = mode, d = pdy;
+      try { el.releasePointerCapture(pid); } catch (_) {}
+      pid = null; mode = null; pdy = 0;
+      if (m === 'dismiss') { host.style.transition = ''; host.style.transform = ''; if (d > commit && onDismiss) onDismiss(); }
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); } }, true);
+  }
+
+  /* ---------- On-screen keyboard ---------- */
+  function makeKeyboard(device, kbd) {
+    let input = null, shiftOn = false;
+    const TYPING = ['text', 'search', 'url', 'email', 'tel', 'password', 'number'];
+    const isTyping = (el) => el && el.tagName === 'INPUT' && TYPING.includes(el.type || 'text');
+    const refreshShift = () => kbd.classList.toggle('shift-on', shiftOn); // .kbd.shift-on
+
+    function open(el) { input = el; device.classList.add('kbd-open'); }
+    function close() { device.classList.remove('kbd-open'); input = null; shiftOn = false; refreshShift(); }
+
+    // text fields auto-open the keyboard; non-text controls (sliders, etc.) don't
+    device.addEventListener('focusin', (e) => { if (isTyping(e.target)) open(e.target); });
+    device.addEventListener('focusout', (e) => {
+      if (!isTyping(e.target)) return;
+      setTimeout(() => { if (!isTyping(document.activeElement)) close(); }, 0);
+    });
+
+    function insert(t) {
+      const s = input.selectionStart ?? input.value.length, e = input.selectionEnd ?? input.value.length;
+      input.value = input.value.slice(0, s) + t + input.value.slice(e);
+      const p = s + t.length; try { input.setSelectionRange(p, p); } catch (_) {}
+      input.dispatchEvent(new Event('input'));
+    }
+    function del() {
+      const s = input.selectionStart ?? input.value.length, e = input.selectionEnd ?? input.value.length;
+      if (s !== e) { input.value = input.value.slice(0, s) + input.value.slice(e); try { input.setSelectionRange(s, s); } catch (_) {} }
+      else if (s > 0) { input.value = input.value.slice(0, s - 1) + input.value.slice(s); try { input.setSelectionRange(s - 1, s - 1); } catch (_) {} }
+      input.dispatchEvent(new Event('input'));
+    }
+
+    kbd.addEventListener('pointerdown', (e) => { if (e.target.closest('.key')) e.preventDefault(); }); // keep focus
+    kbd.addEventListener('click', (e) => {
+      const k = e.target.closest('.key'); if (!k || !input) return;
+      const v = k.getAttribute('data-k');
+      if (v === 'shift') { shiftOn = !shiftOn; refreshShift(); return; }
+      if (v === 'sym' || v === 'fn') return;              // visual only
+      if (v === 'back') { del(); return; }
+      if (v === 'enter') {
+        const f = input.form;
+        if (f) { if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event('submit', { cancelable: true })); }
+        input.blur(); close(); return;
+      }
+      let ch = (v === ' ') ? ' ' : v;
+      if (shiftOn && ch.length === 1) ch = ch.toUpperCase();
+      insert(ch);
+      if (shiftOn) { shiftOn = false; refreshShift(); }
+    });
+
+    return { open, close, isTyping };
+  }
+
+  /* ---------- Snackbar / toast ---------- */
+  function makeSnack(snack, msFn) {
+    const msgEl = snack.querySelector('.snmsg');
+    const actEl = snack.querySelector('.action');
+    let timer = null, action = null, ms = msFn || 4500;
+    function hide() { snack.classList.remove('show'); action = null; }
+    function show(msg, onAction, label) {
+      msgEl.textContent = msg;
+      if (actEl) { actEl.style.display = onAction ? '' : 'none'; if (label) actEl.textContent = label; }
+      action = onAction || null;
+      snack.classList.add('show');
+      clearTimeout(timer); timer = setTimeout(hide, ms);
+    }
+    if (actEl) actEl.addEventListener('click', () => { const f = action; hide(); if (f) f(); });
+    return { show, hide };
+  }
+
+  /* ---------- Overlay manager — coordinates scrim + open/close ---------- */
+  function makeOverlays(scrim) {
+    const openSet = new Set();
+    function open(el) { el.classList.add('open'); openSet.add(el); scrim.classList.add('open'); }
+    function close(el) { el.classList.remove('open'); openSet.delete(el); if (!openSet.size) scrim.classList.remove('open'); }
+    function closeAll() { openSet.forEach(el => el.classList.remove('open')); openSet.clear(); scrim.classList.remove('open'); }
+    scrim.addEventListener('click', closeAll);
+    return { open, close, closeAll, isOpen: (el) => openSet.has(el) };
+  }
+
+  /* ---------- Edge-swipe back gesture (left/right edge, Android-style) ----
+     onCommit(side) fires when the swipe passes the commit threshold.        */
+  function edgeBack(device, hint, onCommit, opts) {
+    opts = opts || {};
+    const EDGE = opts.edge || 24, COMMIT = opts.commit || 84;
+    let st = null;
+    const rect = () => device.getBoundingClientRect();
+    device.addEventListener('pointerdown', (e) => {
+      if (st) return;
+      const r = rect(), x = e.clientX - r.left, y = e.clientY - r.top;
+      let side = null;
+      if (x <= EDGE) side = 'left'; else if (x >= r.width - EDGE) side = 'right';
+      if (!side) return;
+      st = { side, startX: x, startY: y, pid: e.pointerId, inward: 0, gesturing: false, pending: true };
+    }, true);
+    device.addEventListener('pointermove', (e) => {
+      if (!st) return;
+      const r = rect(), x = e.clientX - r.left, y = e.clientY - r.top;
+      const dx = x - st.startX, dy = y - st.startY;
+      const inward = st.side === 'left' ? dx : -dx;
+      if (st.pending) {
+        if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 5) { st = null; return; } // vertical -> scroll
+        if (inward > 5 && Math.abs(dx) > Math.abs(dy)) {
+          st.pending = false; st.gesturing = true;
+          try { device.setPointerCapture(st.pid); } catch (_) {}
+          hint.className = 'backhint' + (st.side === 'right' ? ' right' : '');
+        } else return;
+      }
+      e.preventDefault();
+      st.inward = Math.max(0, inward);
+      const reveal = Math.min(st.inward * 0.62, 54);
+      if (st.side === 'left') hint.style.left = (-44 + reveal) + 'px';
+      else hint.style.right = (-44 + reveal) + 'px';
+      hint.style.top = Math.max(8, Math.min(r.height - 66, y - 29)) + 'px';
+      hint.style.opacity = Math.min(1, st.inward / 22);
+      hint.classList.toggle('committed', st.inward >= COMMIT);
+    }, true);
+    const up = () => {
+      if (!st) return;
+      const commit = st.gesturing && st.inward >= COMMIT, side = st.side;
+      try { device.releasePointerCapture(st.pid); } catch (_) {}
+      hint.style.opacity = '0'; hint.style.left = ''; hint.style.right = '';
+      hint.classList.remove('committed'); st = null;
+      if (commit && onCommit) onCommit(side);
+    };
+    device.addEventListener('pointerup', up, true);
+    device.addEventListener('pointercancel', up, true);
+  }
+
+  /* ---------- Scroll-to-hide a bar ---------- */
+  function autoHideBar(scroller, bar) {
+    let last = 0;
+    scroller.addEventListener('scroll', () => {
+      const y = scroller.scrollTop;
+      if (y <= 4) { bar.classList.remove('hidden'); last = y; return; }
+      const dy = y - last;
+      if (dy > 6 && y > 60) bar.classList.add('hidden');   // committed down -> hide
+      else if (dy < -2) bar.classList.remove('hidden');    // slightest up -> show
+      last = y;
+    }, { passive: true });
+  }
+
+  /* ---------- Text-size control — drives --font on the device ---------- */
+  function applyFontSize(device, px, label) {
+    device.style.setProperty('--font', px + 'px');
+    if (label) label.textContent = px + ' pt';
+  }
+
+  global.Kit = {
+    DRAG_THRESHOLD,
+    dragScroll, bindFades, sheetDrag, pullScroll,
+    makeKeyboard, makeSnack, makeOverlays, edgeBack, autoHideBar, applyFontSize
+  };
+})(window);
+
+</script>
   <script>
   (function () {
     "use strict";
@@ -385,7 +1049,7 @@
       overlays.closeAll();
       device.classList.remove('kbd-open');
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-      collapseWifi();
+      if (typeof closeWifiDialog === 'function') closeWifiDialog();
       // roll the number
       const num = $('navNum');
       num.textContent = v.n;
@@ -564,14 +1228,17 @@
     card.addEventListener('submit', (e) => { e.preventDefault(); authenticate(); });
 
     /* ============================================================
-       7.3  WI-FI CONNECT  (inline secret, reuses the Access boilerplate)
+       7.3  WI-FI CONNECT  (modal dialog + full state machine)
+       Initial → Typing → Connecting → (Success | Password error | Network error)
+       Per-network scripted outcome so every path is demoable:
+         ok = connects; badpass = wrong once then ok; unreachable = fails once then ok.
        ============================================================ */
     const NETS = [
-      { name:'mecha-5G',       secured:true,  signal:3 },
-      { name:'CometGuest',     secured:false, signal:2 },
-      { name:'Studio-2.4',     secured:true,  signal:2 },
-      { name:'eduroam',        secured:true,  signal:1 },
-      { name:'Pixel-Hotspot',  secured:true,  signal:1 }
+      { name:'mecha-5G',      secured:true,  signal:3, script:'ok' },
+      { name:'CometGuest',    secured:false, signal:2 },
+      { name:'Studio-2.4',    secured:true,  signal:2, script:'badpass' },
+      { name:'eduroam',       secured:true,  signal:1, script:'unreachable' },
+      { name:'Pixel-Hotspot', secured:true,  signal:1, script:'ok' }
     ];
     function sigSvg(level) {
       const dim = 'stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"';
@@ -584,55 +1251,97 @@
     }
     const lockMini = '<svg class="lk" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
     const checkMini = '<span class="ck"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>';
-    function collapseWifi() { $('wifiList').querySelectorAll('.wifi-item.open').forEach(it => it.classList.remove('open')); }
     function renderWifi() {
       const list = $('wifiList'); list.innerHTML = '';
       NETS.forEach((net) => {
         const item = document.createElement('div'); item.className = 'wifi-item' + (net.connected ? ' connected' : '');
-        item.innerHTML =
-          '<div class="wifi-row"><span class="sig">' + sigSvg(net.signal) + '</span><span class="nm">' + net.name + '</span>' +
-            '<span class="rt">' + (net.secured ? lockMini : '') + checkMini + '</span></div>' +
-          '<div class="wifi-entry"><div class="row">' +
-            '<div class="ac-field"><input type="password" placeholder="Password" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="Wi-Fi password">' +
-              '<button class="ac-eye" type="button" aria-label="Show password"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + eyeSvg(false) + '</svg></button></div>' +
-            '<button class="connect" disabled>Connect</button></div>' +
-            '<div class="hint">Enter the password for “' + net.name + '”.</div>' +
-          '</div>';
-        const row   = item.querySelector('.wifi-row');
-        const inp   = item.querySelector('input');
-        const eye   = item.querySelector('.ac-eye');
-        const field = item.querySelector('.ac-field');
-        const conn  = item.querySelector('.connect');
-        row.addEventListener('click', () => {
+        item.innerHTML = '<div class="wifi-row"><span class="sig">' + sigSvg(net.signal) + '</span><span class="nm">' + net.name + '</span>' +
+          '<span class="rt">' + (net.secured ? lockMini : '') + checkMini + '</span></div>';
+        item.querySelector('.wifi-row').addEventListener('click', () => {
           if (net.connected) { snack.show('Connected to ' + net.name); return; }
-          if (!net.secured) { connect(net, item, ''); return; }
-          const willOpen = !item.classList.contains('open');
-          collapseWifi();
-          if (willOpen) { item.classList.add('open'); setTimeout(() => { inp.focus(); item.scrollIntoView({ block:'center' }); }, 60); }
+          if (!net.secured) { NETS.forEach(n => n.connected = false); net.connected = true; renderWifi(); snack.show('Connected to ' + net.name); return; }
+          openWifiDialog(net);
         });
-        inp.addEventListener('input', () => { conn.disabled = inp.value.length < 8; });   // WPA2 minimum
-        inp.addEventListener('focus', () => field.classList.add('focus'));
-        inp.addEventListener('blur',  () => field.classList.remove('focus'));
-        let shown = false;
-        eye.addEventListener('click', () => { shown = !shown; inp.type = shown ? 'text' : 'password'; eye.querySelector('svg').innerHTML = eyeSvg(shown); inp.focus(); });
-        conn.addEventListener('click', () => { if (!conn.disabled) connect(net, item, inp.value); });
         list.appendChild(item);
       });
     }
-    function connect(net, item, pwd) {
-      NETS.forEach(n => n.connected = false);
-      net.connected = true;
-      device.classList.remove('kbd-open');
-      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-      renderWifi();
-      snack.show('Connected to ' + net.name);
+
+    const wifiDialog = $('wifiDialog'), wdPw = $('wdPw');
+    const wifiAttempts = {};
+    let wifiNet = null, wifiState = 'typing', wdShown = false, wifiTimer = null;
+
+    function setWdHelp(text, isErr) { const h = $('wdHelp'); h.textContent = text; h.classList.toggle('err', !!isErr); }
+    function setWdConnect(label, disabled, spinner) { const b = $('wdConnect'); b.disabled = disabled; b.innerHTML = (spinner ? '<span class="wd-spin"></span>' : '') + label; }
+    function defaultHelp() { return 'Enter the password for “' + (wifiNet ? wifiNet.name : '') + '”.'; }
+
+    function openWifiDialog(net) {
+      wifiNet = net; wifiState = 'typing';
+      $('wdSig').innerHTML = sigSvg(net.signal);
+      $('wdSsid').textContent = net.name;
+      wdPw.value = ''; wdPw.readOnly = false; wdPw.type = 'password'; wdShown = false; $('wdEyeIcon').innerHTML = eyeSvg(false);
+      wifiDialog.classList.remove('error', 'connecting');
+      $('wdAuto').classList.add('on');           // "Connect automatically" default on
+      setWdHelp(defaultHelp(), false);
+      setWdConnect('Connect', true, false);
+      $('wdCancel').disabled = false;
+      overlays.open(wifiDialog);
+      setTimeout(() => wdPw.focus(), 180);       // auto-focus → keyboard auto-opens
     }
+    function closeWifiDialog() { clearTimeout(wifiTimer); overlays.close(wifiDialog); wdPw.blur(); wdPw.value = ''; wifiState = 'typing'; wifiNet = null; }
+
+    wdPw.addEventListener('input', () => {
+      if (wifiState === 'connecting') return;
+      wifiDialog.classList.remove('error'); setWdHelp(defaultHelp(), false);
+      setWdConnect('Connect', wdPw.value.length < 8, false);   // WPA2 minimum 8
+    });
+    wdPw.addEventListener('focus', () => $('wdField').classList.add('focus'));
+    wdPw.addEventListener('blur',  () => $('wdField').classList.remove('focus'));
+    $('wdEye').addEventListener('click', () => { if (wifiState === 'connecting') return; wdShown = !wdShown; wdPw.type = wdShown ? 'text' : 'password'; $('wdEyeIcon').innerHTML = eyeSvg(wdShown); wdPw.focus(); });
+    $('wdAuto').addEventListener('click', () => { if (wifiState !== 'connecting') $('wdAuto').classList.toggle('on'); });
+    $('wdCancel').addEventListener('click', () => { closeWifiDialog(); snack.show('Cancelled'); });
+    wifiDialog.addEventListener('submit', (e) => { e.preventDefault(); attemptConnect(); });
+
+    function attemptConnect() {
+      if (wifiState === 'connecting' || $('wdConnect').disabled) return;
+      wifiState = 'connecting';
+      wdPw.readOnly = true; wifiDialog.classList.add('connecting'); wifiDialog.classList.remove('error');
+      setWdHelp(defaultHelp(), false);
+      $('wdCancel').disabled = true;
+      setWdConnect('Connecting…', true, true);
+      device.classList.remove('kbd-open'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      const net = wifiNet;
+      const n = (wifiAttempts[net.name] = (wifiAttempts[net.name] || 0) + 1);
+      let outcome = net.script || 'ok';
+      if ((outcome === 'badpass' || outcome === 'unreachable') && n >= 2) outcome = 'ok';   // succeeds on retry
+      clearTimeout(wifiTimer);
+      wifiTimer = setTimeout(() => resolveConnect(net, outcome), 1500);   // real NM would time out at 15–20s
+    }
+    function resolveConnect(net, outcome) {
+      if (wifiState !== 'connecting') return;
+      if (outcome === 'ok') {
+        wifiDialog.classList.remove('connecting'); setWdConnect('Connected', true, false);
+        NETS.forEach(x => x.connected = false); net.connected = true;
+        setTimeout(() => { renderWifi(); closeWifiDialog(); snack.show('Connected to ' + net.name); }, 500);
+      } else if (outcome === 'badpass') {
+        wifiState = 'typing'; wifiDialog.classList.remove('connecting'); wifiDialog.classList.add('error'); wdPw.readOnly = false;
+        setWdHelp('Incorrect password. Try again.', true);
+        setWdConnect('Connect', true, false); $('wdCancel').disabled = false;
+        wdPw.focus(); wdPw.select();
+      } else {  // unreachable / network error — not the user's fault, offer an explicit retry
+        wifiState = 'typing'; wifiDialog.classList.remove('connecting'); wifiDialog.classList.add('error'); wdPw.readOnly = false;
+        setWdHelp('Couldn’t connect to ' + net.name + '.', true);
+        setWdConnect('Try again', false, false); $('wdCancel').disabled = false;
+        wdPw.focus();
+      }
+    }
+    // privacy: hide the password again if the app loses focus
+    window.addEventListener('blur', () => { if (wdShown) { wdShown = false; wdPw.type = 'password'; $('wdEyeIcon').innerHTML = eyeSvg(false); } });
 
     /* ============================================================
        7.4  BLUETOOTH PAIRING AGENT  (Apple-style passkey)
        ============================================================ */
     const BT_MINE  = [ { name:'AirPods Pro', st:'Connected', ic:'buds' } ];
-    const BT_OTHER = [ { name:'Comet Controller', ic:'game' }, { name:'WH-1000XM5', ic:'buds', willTimeout:true }, { name:'Magic Keyboard', ic:'kbd' } ];
+    const BT_OTHER = [ { name:'ClockworkPi GameShell', ic:'game' }, { name:'WH-1000XM5', ic:'buds', willTimeout:true }, { name:'Magic Keyboard', ic:'kbd' } ];
     function btIcon(kind) {
       if (kind === 'game') return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10v4M5 12h4"/><circle cx="16" cy="11.5" r="1"/><circle cx="18.5" cy="14" r="1"/></svg>';
       if (kind === 'kbd')  return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>';
@@ -652,7 +1361,6 @@
     let btTimer = null, pairingName = null, attempts = {};
     function startPairing(name) {
       pairingName = name;
-      $('btName').textContent = name;
       const code = String(Math.floor(1000 + Math.random() * 9000)); // 4-digit passkey
       $('btCode').innerHTML = code.split('').map(d => '<span>' + d + '</span>').join('');
       btCard.classList.remove('waiting', 'timeout');
@@ -692,13 +1400,14 @@
     $('scrim').addEventListener('click', () => {
       if (overlays.isOpen(card)) return closeCard();
       if (overlays.isOpen(btCard)) return closeBt();
+      if (overlays.isOpen(wifiDialog) && wifiState !== 'connecting') return closeWifiDialog();  // non-dismissible while connecting
     });
     Kit.edgeBack(device, $('backhint'), () => {
       if (overlays.isOpen(navMenu)) return overlays.closeAll();
       if (overlays.isOpen(card)) return closeCard();
       if (overlays.isOpen(btCard)) return closeBt();
+      if (overlays.isOpen(wifiDialog)) { if (wifiState !== 'connecting') closeWifiDialog(); return; }
       if (overlays.isOpen(menu)) return overlays.closeAll();
-      if (view === 'wifi' && $('wifiList').querySelector('.wifi-item.open')) return collapseWifi();
       if (view === 'open' || view === 'save') { if ($('fileScreen').classList.contains('searching')) return closeSearch(); goUp(); }
     });
     window.addEventListener('keydown', (e) => {
