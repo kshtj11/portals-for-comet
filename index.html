@@ -577,11 +577,13 @@ body {
   .appc-search { margin-bottom:16px; }
   .appc-search input { width:100%; height:44px; border-radius:12px; background:var(--surface); border:1px solid transparent; color:var(--text); padding:0 12px; font-size:15px; outline:none; transition:border-color .15s; }
   .appc-search input:focus { border-color:var(--hue); }
-  .appc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:16px 12px; overflow-y:auto; padding:4px; flex:1; min-height:100px; }
-  .app-btn { display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; padding:8px 4px; border-radius:12px; border:none; background:none; color:var(--text); }
-  .app-btn:active, .app-btn.selected { background:var(--surface); }
-  .app-btn.selected .app-ic { box-shadow:0 0 0 2px var(--hue); }
-  .app-btn .app-ic { width:52px; height:52px; border-radius:14px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; font-weight:700; }
+  .appc-scroll-area { overflow-y:auto; flex:1; padding:4px; min-height:100px; }
+  .appc-heading { font-size:13px; font-weight:600; color:var(--dim); margin:8px 8px 12px; }
+  .appc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:16px 12px; margin-bottom:16px; }
+  .app-btn { display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; padding:8px 4px; border-radius:12px; border:none; background:none; color:var(--text); outline:none; }
+  .app-btn:active, .app-btn.selected { background:var(--surface-2); }
+  .app-btn:focus-visible .app-ic { box-shadow:0 0 0 2px var(--hue); }
+  .app-btn .app-ic { width:52px; height:52px; border-radius:14px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; font-weight:700; transition:box-shadow .15s; }
   .app-btn .app-nm { font-size:12px; text-align:center; line-height:1.2; word-break:break-word; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .appc-always { display:flex; align-items:center; gap:10px; margin:16px 4px 4px; cursor:pointer; font-size:14px; color:var(--text); user-select:none; }
   .appc-always .box { flex:0 0 auto; width:20px; height:20px; border-radius:6px; border:2px solid #565656; position:relative; transition:background .12s, border-color .12s; }
@@ -608,6 +610,18 @@ body {
   .sh-ic { width:60px; height:60px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; transition:transform .1s; }
   .sh-item.kde .sh-ic { background:#1d4e7a; color:#fff; }
   .sh-nm { font-size:12px; text-align:center; line-height:1.2; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; width:100%; }
+
+  /* ============ Context Menu Mockup ============ */
+  .file-context-menu {
+    position:absolute; background:var(--surface); border:1px solid #333; border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5); padding:6px; z-index:10; min-width:160px;
+  }
+  .file-context-menu .cm-item {
+    display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px;
+    font-size:14px; color:var(--text); cursor:pointer;
+  }
+  .file-context-menu .cm-item:active { background:var(--surface-2); }
+  .file-context-menu .cm-ic { opacity:.7; }
 </style>
 </head>
 <body>
@@ -715,7 +729,13 @@ body {
       <div class="appc-search">
         <input id="appSearch" type="search" placeholder="Search apps" autocomplete="off" spellcheck="false" enterkeyhint="search">
       </div>
-      <div class="appc-grid" id="appGrid"></div>
+      <div class="appc-scroll-area">
+        <div class="appc-heading" id="appSuggestedHead">Suggested</div>
+        <div class="appc-grid" id="appGridSuggested"></div>
+        <div class="appc-heading" id="appAllHead">All Apps</div>
+        <div class="appc-grid" id="appGridAll"></div>
+        <button class="app-btn" id="appChooseOther"><div class="app-ic">+</div><div class="app-nm">Choose App</div></button>
+      </div>
       <label class="appc-always" id="appAlways"><span class="box"></span><span>Always use this app</span></label>
       <div class="ac-actions">
         <button class="chip" id="appCancel" type="button">Cancel</button>
@@ -724,7 +744,35 @@ body {
     </div>
 
     <!-- ============ 7.6 Share Sheet ============ -->
-    <div class="screen" id="shareScreen" hidden></div>
+    <!-- ============ 7.5 App Chooser Screen Mockup ============ -->
+    <div class="screen" id="appChooserScreen" hidden>
+      <header class="portalbar">
+        <span class="pb-title">Open File</span>
+        <span class="pb-app"><span class="appdot">C</span><span>Chrome</span></span>
+      </header>
+      <nav class="crumbs"><span class="seg">Locations</span><span class="sep">/</span><span class="seg">Documents</span><span class="sep">/</span><span class="seg cur">Downloads</span></nav>
+      <div class="list">
+        <div class="frow focus"><span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></span><span class="fmeta"><span class="fname">archive.zip</span><span class="fdate">15 Jul 2025</span></span></div>
+      </div>
+    </div>
+
+    <!-- ============ 7.6 Share Screen Mockup ============ -->
+    <div class="screen" id="shareScreen" hidden>
+      <header class="portalbar">
+        <span class="pb-title">File Manager</span>
+      </header>
+      <nav class="crumbs"><span class="seg">Locations</span><span class="sep">/</span><span class="seg">Documents</span><span class="sep">/</span><span class="seg cur">Projects</span></nav>
+      <div class="list" style="position:relative">
+        <div class="frow focus" style="position:relative; z-index:1">
+          <span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></span>
+          <span class="fmeta"><span class="fname">design_assets.zip</span><span class="fdate">12 Aug 2025</span></span>
+          <div class="file-context-menu" id="shareContextMenu" style="top:40px; right:20px;">
+            <div class="cm-item" id="cmShareBtn"><span class="cm-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span>Share</div>
+            <div class="cm-item"><span class="cm-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>Delete</div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="sharesheet sheet" id="shareSheet">
       <div class="sh-handle" id="shareHandle"></div>
       <div class="sh-head">
@@ -1479,22 +1527,39 @@ body {
       { name: 'Code Editor', ic: '💻' }, { name: 'Archive Manager', ic: '📦' }
     ];
     let appTarget = null;
-    const appChooser = $('appChooser'), appGrid = $('appGrid'), appSearch = $('appSearch');
+    const appChooser = $('appChooser'), appGridSuggested = $('appGridSuggested'), appGridAll = $('appGridAll'), appSearch = $('appSearch');
     
     function renderApps(filterText) {
-      appGrid.innerHTML = '';
+      appGridSuggested.innerHTML = '';
+      appGridAll.innerHTML = '';
       const f = (filterText || '').toLowerCase();
       const list = APPS.filter(a => a.name.toLowerCase().includes(f));
-      list.forEach((app, idx) => {
+      
+      const suggested = list.slice(0, 4);
+      const rest = list.slice(4);
+      
+      $('appSuggestedHead').style.display = suggested.length ? 'block' : 'none';
+      $('appAllHead').style.display = rest.length ? 'block' : 'none';
+      $('appChooseOther').style.display = f ? 'none' : 'flex';
+
+      const selectApp = (btn) => {
+        appChooser.querySelectorAll('.app-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        $('appOpen').disabled = false;
+      };
+
+      suggested.forEach((app, idx) => {
         const btn = document.createElement('button'); btn.className = 'app-btn';
         if (idx === 0) btn.classList.add('selected');
         btn.innerHTML = '<div class="app-ic">' + app.ic + '</div><div class="app-nm">' + app.name + '</div>';
-        btn.addEventListener('click', () => {
-          appGrid.querySelectorAll('.app-btn').forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          $('appOpen').disabled = false;
-        });
-        appGrid.appendChild(btn);
+        btn.addEventListener('click', () => selectApp(btn));
+        appGridSuggested.appendChild(btn);
+      });
+      rest.forEach((app) => {
+        const btn = document.createElement('button'); btn.className = 'app-btn';
+        btn.innerHTML = '<div class="app-ic">' + app.ic + '</div><div class="app-nm">' + app.name + '</div>';
+        btn.addEventListener('click', () => selectApp(btn));
+        appGridAll.appendChild(btn);
       });
       $('appOpen').disabled = list.length === 0;
     }
@@ -1510,9 +1575,10 @@ body {
     function closeAppChooser() { overlays.close(appChooser); appSearch.blur(); appTarget = null; }
     
     $('appCancel').addEventListener('click', closeAppChooser);
+    $('appChooseOther').addEventListener('click', () => snack.show('Browse system for app...'));
     $('appAlways').addEventListener('click', () => $('appAlways').classList.toggle('on'));
     $('appOpen').addEventListener('click', () => {
-      const sel = appGrid.querySelector('.selected .app-nm');
+      const sel = appChooser.querySelector('.selected .app-nm');
       if (sel) snack.show('Opened “' + appTarget + '” in ' + sel.textContent);
       closeAppChooser();
     });
@@ -1557,6 +1623,15 @@ body {
       shareSheet.classList.remove('open');
       overlays.close(shareSheet);
     }
+    
+    $('cmShareBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      $('shareContextMenu').style.display = 'none';
+      openShare();
+    });
+    $('shareScreen').querySelector('.frow').addEventListener('click', () => {
+      $('shareContextMenu').style.display = 'block';
+    });
 
     /* ============================================================
        Shared scrim / edge-back / keyboard shortcuts
