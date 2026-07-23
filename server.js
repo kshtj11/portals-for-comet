@@ -18,7 +18,7 @@ const TYPES = {
 
 http.createServer((req, res) => {
   let pathname = decodeURIComponent(req.url.split('?')[0]);
-  if (pathname === '/') pathname = '/portals/index.html';
+  if (pathname === '/') pathname = '/index.html';
   let filePath = path.join(ROOT, pathname);
   // stay inside ROOT
   if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('Forbidden'); }

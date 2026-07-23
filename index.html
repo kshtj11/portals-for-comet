@@ -709,6 +709,63 @@ body {
   .kde-info .st { font-size:calc(var(--font) * .75); color:#4caf50; }
   .kde-row.add .kde-ic { background:var(--surface-3); color:var(--text); }
 
+  /* ============ 7.7 Permissions ============ */
+  /* app mockup — a camera viewfinder that needs the mic */
+  .cam-view { position:absolute; inset:0; background:#0a0a0a; display:flex; flex-direction:column; }
+  .cam-scan { flex:1; margin:52px 14px 8px; border-radius:18px; position:relative; overflow:hidden;
+              background:radial-gradient(120% 90% at 50% 35%, #1d1d1d 0%, #0c0c0c 70%); display:flex; align-items:center; justify-content:center; }
+  .cam-scan::before { content:""; position:absolute; inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+    background-size:33.3% 33.3%; }
+  .cam-scan .cam-eye { color:#333; width:56px; height:56px; }
+  .cam-badge { position:absolute; top:14px; left:14px; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text);
+               background:rgba(0,0,0,.45); padding:6px 12px; border-radius:999px; }
+  .cam-badge .dot { width:8px; height:8px; border-radius:50%; background:#df6b62; }
+  .cam-controls { padding:14px 0 26px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .cam-shutter { width:68px; height:68px; border-radius:50%; background:#fff; border:4px solid #3a3a3a; cursor:pointer; transition:transform .1s; }
+  .cam-shutter:active { transform:scale(.92); }
+  .cam-hint { font-size:13px; color:var(--dim); }
+
+  /* central permission dialog — 3 choices + top-right link to the settings page */
+  .permdialog { position:absolute; z-index:var(--z-popup); top:50%; left:50%; width:86%; max-width:360px;
+                transform:translate(-50%,-50%) scale(.92); opacity:0; pointer-events:none;
+                background:var(--overlay); border:1px solid #333; border-radius:22px; box-shadow:0 30px 80px rgba(0,0,0,.7);
+                padding:24px 20px 18px; text-align:center; transition:opacity .2s, transform .24s cubic-bezier(.34,1.2,.5,1); }
+  .permdialog.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .perm-settings { position:absolute; top:14px; right:14px; width:38px; height:38px; border-radius:11px; border:none;
+                   background:var(--surface-3); color:var(--dim); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .08s,color .12s; }
+  .perm-settings:active { transform:scale(.94); color:var(--text); }
+  .perm-ic { width:56px; height:56px; margin:2px auto 14px; border-radius:16px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); }
+  .perm-q { font-size:18px; font-weight:700; line-height:1.35; margin:0 6px; }
+  .perm-sub { font-size:13.5px; color:var(--dim); line-height:1.5; margin:8px 4px 18px; }
+  .perm-opts { display:flex; flex-direction:column; gap:8px; }
+  .perm-opt { -webkit-appearance:none; appearance:none; border:none; cursor:pointer; height:50px; border-radius:14px;
+              background:var(--surface-2); color:var(--text); font:600 15px/1 inherit; transition:background .12s, box-shadow .12s, transform .08s; }
+  .perm-opt:active { transform:scale(.98); }
+  .perm-opt.primary { background:var(--accent); color:var(--on-accent); }
+  .perm-opt.danger  { color:#df6b62; }
+  .perm-opt.focusring { box-shadow:0 0 0 2px var(--hue); }   /* gamepad default sits on the safer option */
+
+  /* permissions settings page (Android/iOS style) — uses device-kit .panel/.toggle */
+  .perm-appcard { display:flex; align-items:center; gap:14px; padding:16px 18px 14px; }
+  .perm-appcard .perm-app-ic { width:52px; height:52px; border-radius:14px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; font-size:26px; }
+  .perm-appcard .nm { font-size:18px; font-weight:600; }
+  .perm-appcard .sub { font-size:13px; color:var(--dim); margin-top:2px; }
+  .perm-sec { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--dim); margin:12px 20px 8px; }
+  .perm-page-body { padding:4px 14px 28px; }
+  .perm-page-body .toggle { border-radius:12px; }
+  .perm-page-body .toggle .tl { display:flex; align-items:center; gap:12px; }
+  .perm-page-body .toggle .tl svg { width:20px; height:20px; color:var(--dim); }
+  .perm-catcard { background:var(--surface); border-radius:12px; padding:2px 14px; }
+  .perm-cat { display:flex; align-items:center; gap:14px; padding:14px 4px; cursor:pointer; }
+  .perm-cat + .perm-cat { border-top:1px solid var(--line); }
+  .perm-cat .ci { width:34px; height:34px; border-radius:10px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; color:var(--text); }
+  .perm-cat .ci svg { width:19px; height:19px; }
+  .perm-cat .cm { flex:1; }
+  .perm-cat .cm .t { font-size:15px; }
+  .perm-cat .cm .s { font-size:13px; color:var(--dim); margin-top:2px; }
+  .perm-cat .chev { color:var(--dim); display:flex; }
+
 </style>
 </head>
 <body>
@@ -806,7 +863,9 @@ body {
         <div class="menu-item" data-view="access"><span class="nn">3</span><span class="label">Access</span></div>
         <div class="menu-item" data-view="wifi"><span class="nn">4</span><span class="label">Wi-Fi Connect</span></div>
         <div class="menu-item" data-view="bt"><span class="nn">5</span><span class="label">Bluetooth Pairing</span></div>
-        <div class="menu-item" data-view="share"><span class="nn">6</span><span class="label">Share</span></div>
+        <div class="menu-item" data-view="appchooser"><span class="nn">6</span><span class="label">App Chooser</span></div>
+        <div class="menu-item" data-view="share"><span class="nn">7</span><span class="label">Share</span></div>
+        <div class="menu-item" data-view="perm"><span class="nn">8</span><span class="label">Permissions</span></div>
       </div>
     </div>
 
@@ -913,6 +972,70 @@ body {
           <div class="kde-row add">
             <div class="kde-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
             <div class="kde-info"><span class="nm">Pair New Device...</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 7.7 Permissions — app mockup (Comet Camera) ============ -->
+    <div class="screen" id="permScreen" hidden>
+      <div class="cam-view">
+        <div class="cam-scan">
+          <div class="cam-badge"><span class="dot"></span>Comet Camera</div>
+          <svg class="cam-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <div class="cam-controls">
+          <button class="cam-shutter" id="permTrigger" aria-label="Start recording"></button>
+          <span class="cam-hint">Tap to start recording</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 7.7 Permissions dialog ============ -->
+    <div class="permdialog" id="permDialog">
+      <button class="perm-settings" id="permOpenPage" aria-label="Open permission settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="9" cy="8" r="2.4" fill="var(--overlay)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="15" cy="16" r="2.4" fill="var(--overlay)"/></svg>
+      </button>
+      <div class="perm-ic">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+      </div>
+      <div class="perm-q">Allow <b>Comet Camera</b> to record audio?</div>
+      <div class="perm-sub">So you can capture sound while recording video.</div>
+      <div class="perm-opts">
+        <button class="perm-opt primary focusring" data-choice="while">While using the app</button>
+        <button class="perm-opt" data-choice="always">Allow</button>
+        <button class="perm-opt danger" data-choice="deny">Don’t allow</button>
+      </div>
+    </div>
+
+    <!-- ============ 7.7 Permissions settings page (Android/iOS style) ============ -->
+    <div class="panel" id="permPage">
+      <div class="phead">
+        <button class="back" id="permPageBack" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h2>App permissions</h2>
+      </div>
+      <div class="body">
+        <div class="perm-appcard">
+          <div class="perm-app-ic">🎥</div>
+          <div><div class="nm">Comet Camera</div><div class="sub">System app · v2.4</div></div>
+        </div>
+
+        <div class="perm-sec">Allowed for this app</div>
+        <div class="perm-page-body" style="padding-bottom:6px">
+          <div class="toggle on"><span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>Microphone</span><span class="sw"></span></div>
+          <div class="toggle on"><span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.5"/></svg>Camera</span><span class="sw"></span></div>
+          <div class="toggle"><span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Location</span><span class="sw"></span></div>
+          <div class="toggle"><span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Files &amp; media</span><span class="sw"></span></div>
+          <div class="toggle on"><span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Notifications</span><span class="sw"></span></div>
+        </div>
+
+        <div class="perm-sec">Permission manager</div>
+        <div style="padding:0 14px">
+          <div class="perm-catcard">
+            <div class="perm-cat" data-cat="Camera"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="cm"><span class="t">Camera</span><span class="s">4 of 9 apps allowed</span></span><span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+            <div class="perm-cat" data-cat="Microphone"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg></span><span class="cm"><span class="t">Microphone</span><span class="s">2 of 9 apps allowed</span></span><span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+            <div class="perm-cat" data-cat="Location"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="cm"><span class="t">Location</span><span class="s">1 of 9 apps allowed</span></span><span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
+            <div class="perm-cat" data-cat="Files &amp; media"><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="cm"><span class="t">Files &amp; media</span><span class="s">6 of 9 apps allowed</span></span><span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>
           </div>
         </div>
       </div>
@@ -1304,7 +1427,8 @@ body {
       { id:'wifi',       n:4, name:'Wi-Fi Connect' },
       { id:'bt',         n:5, name:'Bluetooth Pairing' },
       { id:'appchooser', n:6, name:'App Chooser' },
-      { id:'share',      n:7, name:'Share Portal' }
+      { id:'share',      n:7, name:'Share Portal' },
+      { id:'perm',       n:8, name:'Permissions' }
     ];
     let view = 'open';
 
@@ -1317,11 +1441,13 @@ body {
       $('btScreen').hidden         = v.id !== 'bt';
       $('appChooserScreen').hidden = v.id !== 'appchooser';
       $('shareScreen').hidden      = v.id !== 'share';
+      $('permScreen').hidden       = v.id !== 'perm';
       overlays.closeAll();
       device.classList.remove('kbd-open');
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       if (typeof closeWifiDialog === 'function') closeWifiDialog();
       if (typeof closeShare === 'function') closeShare();
+      $('permPage').classList.remove('open');
       // roll the number
       const num = $('navNum');
       num.textContent = v.n;
@@ -1739,6 +1865,24 @@ body {
     }
 
     /* ============================================================
+       7.7 PERMISSIONS  (dialog + Android/iOS settings page)
+       ============================================================ */
+    const permDialog = $('permDialog'), permPage = $('permPage');
+    $('permTrigger').addEventListener('click', () => overlays.open(permDialog));
+    permDialog.querySelectorAll('.perm-opt').forEach(b => b.addEventListener('click', () => {
+      const c = b.dataset.choice;
+      const msg = c === 'deny'  ? 'Microphone blocked for Comet Camera'
+                : c === 'while' ? 'Microphone allowed while using Comet Camera'
+                :                 'Microphone always allowed for Comet Camera';
+      overlays.close(permDialog); snack.show(msg);
+    }));
+    // top-right → the full permissions page (slides over the dialog; back returns to it)
+    $('permOpenPage').addEventListener('click', () => permPage.classList.add('open'));
+    $('permPageBack').addEventListener('click', () => permPage.classList.remove('open'));
+    permPage.querySelectorAll('.toggle').forEach(t => t.addEventListener('click', () => t.classList.toggle('on')));
+    permPage.querySelectorAll('.perm-cat').forEach(c => c.addEventListener('click', () => snack.show('Opening ' + c.dataset.cat + ' permissions…')));
+
+    /* ============================================================
        7.6 SHARE PORTAL (Bottom Sheet)
        ============================================================ */
     const SHARE_TARGETS = [
@@ -1864,6 +2008,8 @@ body {
     });
     Kit.edgeBack(device, $('backhint'), () => {
       if (overlays.isOpen(navMenu)) return overlays.closeAll();
+      if ($('permPage').classList.contains('open')) return $('permPage').classList.remove('open');
+      if (overlays.isOpen(permDialog)) return overlays.close(permDialog);
       if (overlays.isOpen(card)) return closeCard();
       if (overlays.isOpen(btCard)) return closeBt();
       if (overlays.isOpen(appChooser)) return closeAppChooser();
