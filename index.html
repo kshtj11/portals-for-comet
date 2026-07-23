@@ -522,7 +522,7 @@ body {
   .wifidialog.open { opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0) scale(1); }
   .wd-head { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
   .wd-head .wd-sig { flex:0 0 auto; color:var(--text); display:flex; }
-  .wd-head .wd-ssid { flex:1; font-size:18px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .wd-head .wd-ssid { flex:0 0 auto; font-size:18px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .wd-head .wd-lock { flex:0 0 auto; color:var(--dim); display:flex; }
   .wifidialog.error .ac-field { border-color:var(--err); }
   .wifidialog.connecting .ac-field { opacity:.55; }
@@ -765,6 +765,20 @@ body {
   .perm-cat .cm .t { font-size:15px; }
   .perm-cat .cm .s { font-size:13px; color:var(--dim); margin-top:2px; }
   .perm-cat .chev { color:var(--dim); display:flex; }
+
+  /* ---- Access: polkit "Details" disclosure ---- */
+  .ac-details-btn { -webkit-appearance:none; appearance:none; background:none; border:none; color:var(--hue); font:600 12.5px/1 inherit; cursor:pointer; display:inline-flex; align-items:center; gap:5px; padding:2px; margin:-4px 0 12px; }
+  .ac-details-btn svg { width:14px; height:14px; transition:transform .18s; }
+  .ac-details-btn.open svg { transform:rotate(180deg); }
+  .ac-details { background:var(--surface); border-radius:10px; padding:6px 12px; margin:0 0 14px; }
+  .ac-details .ac-det { display:flex; justify-content:space-between; gap:14px; padding:7px 0; }
+  .ac-details .ac-det + .ac-det { border-top:1px solid var(--line); }
+  .ac-details .k { color:var(--dim); font-size:12px; flex:0 0 auto; }
+  .ac-details .v { color:var(--text); font-family:'Roboto Mono',monospace; font-size:11px; text-align:right; word-break:break-all; }
+
+  /* ---- Wi-Fi: security-type subtitle + hidden-SSID field ---- */
+  .wd-headtext { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .wd-sec { font-size:12px; color:var(--dim); margin-top:2px; }
 
 </style>
 </head>
@@ -1072,6 +1086,12 @@ body {
         <span class="ac-title">Authentication Required</span>
       </div>
       <p class="ac-reason"><b>Settings</b> requires your password to make changes to user accounts.</p>
+      <button class="ac-details-btn" id="acDetToggle" type="button"><span>Show details</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="ac-details" id="acDetails" hidden>
+        <div class="ac-det"><span class="k">Action</span><span class="v">org.freedesktop.accounts.<wbr>user-administration</span></div>
+        <div class="ac-det"><span class="k">Requested by</span><span class="v">/usr/bin/comet-settings</span></div>
+        <div class="ac-det"><span class="k">Vendor</span><span class="v">Mecha Systems</span></div>
+      </div>
       <div class="ac-id"><span class="av">m</span><span class="nm">mecha · Administrator</span></div>
       <div class="ac-field" id="acField">
         <input id="pw" type="password" placeholder="Password" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="Password">
@@ -1088,8 +1108,11 @@ body {
     <form class="wifidialog" id="wifiDialog">
       <div class="wd-head">
         <span class="wd-sig" id="wdSig"></span>
-        <span class="wd-ssid" id="wdSsid">Network</span>
+        <span class="wd-headtext"><span class="wd-ssid" id="wdSsid">Network</span><span class="wd-sec" id="wdSec">WPA2 · Personal</span></span>
         <span class="wd-lock"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+      </div>
+      <div class="ac-field" id="wdSsidField" hidden>
+        <input id="wdSsidInput" type="text" placeholder="Network name (SSID)" autocomplete="off" spellcheck="false" aria-label="Network name">
       </div>
       <div class="ac-field" id="wdField">
         <input id="wdPw" type="password" placeholder="Password" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="Wi-Fi password">
@@ -1488,19 +1511,19 @@ body {
       renderFiles();
     }
     const dir  = (name, date, kids) => ({ name, type:'dir',  date, children: kids || [] });
-    const file = (name, date, type) => ({ name, type: type || 'file', date });
+    const file = (name, date, type, size) => ({ name, type: type || 'file', date, size });
     const FS = dir('Locations', '', [
-      dir('Home', '15 Jul 2025', [ file('todo.md','14 Jul 2025'), file('.bashrc','01 Jan 2025') ]),
+      dir('Home', '15 Jul 2025', [ file('todo.md','14 Jul 2025','file','2 KB'), file('.bashrc','01 Jan 2025','file','1 KB') ]),
       dir('Documents', '15 Jul 2025', [
-        file('proposal.pdf', '15 Jul 2025', 'pdf'),
-        dir ('Screenshots', '15 Jul 2025', [ file('capture-01.png','15 Jul 2025'), file('capture-02.png','15 Jul 2025') ]),
-        dir ('Downloads', '15 Jul 2025', [ file('installer.pkg','15 Jul 2025'), file('firmware.bin','12 Jul 2025') ]),
-        dir ('travel', '15 Jul 2025', [ file('itinerary.txt','10 Jul 2025') ]),
-        file('mecha.doc', '20 Aug 2025', 'pdf'),
+        file('proposal.pdf', '15 Jul 2025', 'pdf','1.2 MB'),
+        dir ('Screenshots', '15 Jul 2025', [ file('capture-01.png','15 Jul 2025','file','2.4 MB'), file('capture-02.png','15 Jul 2025','file','1.9 MB') ]),
+        dir ('Downloads', '15 Jul 2025', [ file('installer.pkg','15 Jul 2025','file','84 MB'), file('firmware.bin','12 Jul 2025','file','12 MB') ]),
+        dir ('travel', '15 Jul 2025', [ file('itinerary.txt','10 Jul 2025','file','4 KB') ]),
+        file('mecha.doc', '20 Aug 2025', 'pdf','340 KB'),
         dir ('New images', '15 Jul 2025', []),
-        file('.draft.swp', '15 Jul 2025')
+        file('.draft.swp', '15 Jul 2025','file','12 KB')
       ]),
-      dir('Pictures', '02 Jun 2025', [ file('sunset.jpg','02 Jun 2025') ]),
+      dir('Pictures', '02 Jun 2025', [ file('sunset.jpg','02 Jun 2025','file','3.1 MB') ]),
       dir('USB Drive', '22 Jul 2025', [])
     ]);
     FS.children[1].children[2].icon = 'download';
@@ -1551,7 +1574,7 @@ body {
         row.className = 'frow' + (i === focusIdx ? ' focus' : '');
         row.innerHTML = '<span class="fico">' + icon(node) + '</span>' +
           '<span class="fmeta"><span class="fname">' + node.name + '</span>' +
-          (node.type !== 'dir' && node.date ? '<span class="fdate">' + node.date + '</span>' : '') + '</span>' +
+          (node.type !== 'dir' && node.date ? '<span class="fdate">' + node.date + (node.size ? ' · ' + node.size : '') + '</span>' : '') + '</span>' +
           (node.type === 'dir' ? '<span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>' : '');
         row.addEventListener('click', () => activate(node, i));
         list.appendChild(row);
@@ -1595,10 +1618,19 @@ body {
        ============================================================ */
     const CORRECT = 'mecha';
     const card = $('accessCard'), pw = $('pw');
-    function openCard() { overlays.open(card); $('acErr').classList.remove('show'); setTimeout(() => pw.focus(), 180); }
+    function resetDetails() { $('acDetails').hidden = true; $('acDetToggle').classList.remove('open'); $('acDetToggle').firstElementChild.textContent = 'Show details'; }
+    function openCard() { overlays.open(card); $('acErr').classList.remove('show'); resetDetails(); setTimeout(() => pw.focus(), 180); }
     function closeCard() { overlays.close(card); pw.blur(); pw.value = ''; syncAuth(); }
     $('unlockBtn').addEventListener('click', openCard);
     $('cancelBtn').addEventListener('click', () => { closeCard(); snack.show('Authentication cancelled'); });
+    // polkit-style "Details" disclosure (action id / requesting binary / vendor)
+    $('acDetToggle').addEventListener('click', () => {
+      const d = $('acDetails'), open = d.hidden;
+      d.hidden = !open;
+      $('acDetToggle').classList.toggle('open', open);
+      $('acDetToggle').firstElementChild.textContent = open ? 'Hide details' : 'Show details';
+      if (open) pw.blur();   // free room from the keyboard while reading details
+    });
     function syncAuth() { $('authBtn').disabled = pw.value.length === 0; }
     pw.addEventListener('input', () => { syncAuth(); $('acErr').classList.remove('show'); });
     pw.addEventListener('focus', () => $('acField').classList.add('focus'));
@@ -1632,12 +1664,13 @@ body {
          ok = connects; badpass = wrong once then ok; unreachable = fails once then ok.
        ============================================================ */
     const NETS = [
-      { name:'mecha-5G',      secured:true,  signal:3, script:'ok' },
-      { name:'CometGuest',    secured:false, signal:2 },
-      { name:'Studio-2.4',    secured:true,  signal:2, script:'badpass' },
-      { name:'eduroam',       secured:true,  signal:1, script:'unreachable' },
-      { name:'Pixel-Hotspot', secured:true,  signal:1, script:'ok' }
+      { name:'mecha-5G',      secured:true,  signal:3, script:'ok',          security:'WPA3' },
+      { name:'CometGuest',    secured:false, signal:2,                        security:'Open' },
+      { name:'Studio-2.4',    secured:true,  signal:2, script:'badpass',      security:'WPA2' },
+      { name:'eduroam',       secured:true,  signal:1, script:'unreachable',  security:'WPA2 Enterprise' },
+      { name:'Pixel-Hotspot', secured:true,  signal:1, script:'ok',           security:'WPA2' }
     ];
+    const plusSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
     function sigSvg(level) {
       const dim = 'stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"';
       const o = (n) => level >= n ? '1' : '.28';
@@ -1662,6 +1695,11 @@ body {
         });
         list.appendChild(item);
       });
+      // desktop NetworkManager: connect to a network that isn't broadcasting its SSID
+      const other = document.createElement('div'); other.className = 'wifi-item';
+      other.innerHTML = '<div class="wifi-row"><span class="sig">' + plusSvg + '</span><span class="nm">Join Other Network…</span></div>';
+      other.querySelector('.wifi-row').addEventListener('click', () => openWifiDialog({ name:'', secured:true, signal:0, security:'WPA/WPA2', hidden:true }));
+      list.appendChild(other);
     }
 
     const wifiDialog = $('wifiDialog'), wdPw = $('wdPw');
@@ -1670,12 +1708,23 @@ body {
 
     function setWdHelp(text, isErr) { const h = $('wdHelp'); h.textContent = text; h.classList.toggle('err', !!isErr); }
     function setWdConnect(label, disabled, spinner) { const b = $('wdConnect'); b.disabled = disabled; b.innerHTML = (spinner ? '<span class="wd-spin"></span>' : '') + label; }
-    function defaultHelp() { return 'Enter the password for “' + (wifiNet ? wifiNet.name : '') + '”.'; }
+    function defaultHelp() {
+      const nm = wifiNet && wifiNet.hidden ? ($('wdSsidInput').value.trim() || 'this network') : (wifiNet ? wifiNet.name : '');
+      return 'Enter the password for “' + nm + '”.';
+    }
+    function wifiValid() {
+      const ssidOk = !wifiNet || !wifiNet.hidden || $('wdSsidInput').value.trim().length > 0;
+      return ssidOk && wdPw.value.length >= 8;
+    }
 
     function openWifiDialog(net) {
       wifiNet = net; wifiState = 'typing';
-      $('wdSig').innerHTML = sigSvg(net.signal);
-      $('wdSsid').textContent = net.name;
+      const hidden = !!net.hidden;
+      $('wdSig').innerHTML = sigSvg(net.signal || 0);
+      $('wdSsidField').hidden = !hidden;
+      $('wdSsidInput').value = '';
+      $('wdSsid').textContent = hidden ? 'Add Network' : net.name;
+      $('wdSec').textContent = hidden ? 'Enter network details' : (net.security || '');
       wdPw.value = ''; wdPw.readOnly = false; wdPw.type = 'password'; wdShown = false; $('wdEyeIcon').innerHTML = eyeSvg(false);
       wifiDialog.classList.remove('error', 'connecting');
       $('wdAuto').classList.add('on');           // "Connect automatically" default on
@@ -1683,17 +1732,24 @@ body {
       setWdConnect('Connect', true, false);
       $('wdCancel').disabled = false;
       overlays.open(wifiDialog);
-      setTimeout(() => wdPw.focus(), 180);       // auto-focus → keyboard auto-opens
+      setTimeout(() => (hidden ? $('wdSsidInput') : wdPw).focus(), 180);   // auto-focus → keyboard auto-opens
     }
     function closeWifiDialog() { clearTimeout(wifiTimer); overlays.close(wifiDialog); wdPw.blur(); wdPw.value = ''; wifiState = 'typing'; wifiNet = null; }
 
     wdPw.addEventListener('input', () => {
       if (wifiState === 'connecting') return;
       wifiDialog.classList.remove('error'); setWdHelp(defaultHelp(), false);
-      setWdConnect('Connect', wdPw.value.length < 8, false);   // WPA2 minimum 8
+      setWdConnect('Connect', !wifiValid(), false);   // WPA2 minimum 8 (+ SSID for hidden)
     });
     wdPw.addEventListener('focus', () => $('wdField').classList.add('focus'));
     wdPw.addEventListener('blur',  () => $('wdField').classList.remove('focus'));
+    $('wdSsidInput').addEventListener('input', () => {
+      if (wifiState === 'connecting') return;
+      wifiDialog.classList.remove('error'); setWdHelp(defaultHelp(), false);
+      setWdConnect('Connect', !wifiValid(), false);
+    });
+    $('wdSsidInput').addEventListener('focus', () => $('wdSsidField').classList.add('focus'));
+    $('wdSsidInput').addEventListener('blur',  () => $('wdSsidField').classList.remove('focus'));
     $('wdEye').addEventListener('click', () => { if (wifiState === 'connecting') return; wdShown = !wdShown; wdPw.type = wdShown ? 'text' : 'password'; $('wdEyeIcon').innerHTML = eyeSvg(wdShown); wdPw.focus(); });
     $('wdAuto').addEventListener('click', () => { if (wifiState !== 'connecting') $('wdAuto').classList.toggle('on'); });
     $('wdCancel').addEventListener('click', () => { closeWifiDialog(); snack.show('Cancelled'); });
@@ -1701,6 +1757,7 @@ body {
 
     function attemptConnect() {
       if (wifiState === 'connecting' || $('wdConnect').disabled) return;
+      if (wifiNet.hidden) wifiNet.name = ($('wdSsidInput').value.trim() || 'Hidden Network');
       wifiState = 'connecting';
       wdPw.readOnly = true; wifiDialog.classList.add('connecting'); wifiDialog.classList.remove('error');
       setWdHelp(defaultHelp(), false);
@@ -1718,6 +1775,7 @@ body {
       if (wifiState !== 'connecting') return;
       if (outcome === 'ok') {
         wifiDialog.classList.remove('connecting'); setWdConnect('Connected', true, false);
+        if (net.hidden && !NETS.includes(net)) { net.hidden = false; net.signal = 2; NETS.unshift(net); }  // now a known network
         NETS.forEach(x => x.connected = false); net.connected = true;
         setTimeout(() => { renderWifi(); closeWifiDialog(); snack.show('Connected to ' + net.name); }, 500);
       } else if (outcome === 'badpass') {
@@ -1843,6 +1901,9 @@ body {
       appTarget = filename;
       appSearch.value = '';
       $('appAlways').classList.remove('on');
+      // desktop default-handler logic: bind the choice to the file's TYPE, not just "this app"
+      const ext = (filename.split('.').pop() || '').toLowerCase();
+      $('appAlways').lastElementChild.textContent = (ext && ext !== filename.toLowerCase()) ? ('Always use for .' + ext + ' files') : 'Always use this app';
       renderApps('');
       overlays.open(appChooser);
     }
