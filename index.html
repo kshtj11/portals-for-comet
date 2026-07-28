@@ -563,29 +563,45 @@ body {
   .btcard.timeout .bt-code span { color:#5a5a5a; }
   .btcard.timeout .bt-status { color:var(--text); }
   .btcard .ac-actions { margin-top:14px; }
-  /* ============ 7.5 App Chooser Modal ============ */
+  /* ============ 7.5 App Chooser — bottom-up sheet ============ */
   .appchooser {
-    position:absolute; z-index:var(--z-popup); top:50%; left:50%; width:90%; max-width:400px;
-    transform:translate(-50%,-50%) scale(.92); opacity:0; pointer-events:none;
-    background:var(--overlay); border:1px solid #333; border-radius:18px;
-    box-shadow:0 30px 80px rgba(0,0,0,.7); padding:20px;
-    transition:opacity .2s, transform .24s cubic-bezier(.34,1.2,.5,1);
-    display:flex; flex-direction:column; max-height: 80vh;
+    position:absolute; z-index:var(--z-popup); left:0; right:0; bottom:0;
+    margin:0 auto; width:100%; max-width:540px;
+    background:var(--overlay); border-top:1px solid var(--line);
+    box-shadow:0 -10px 40px rgba(0,0,0,.5); padding:18px 18px var(--pad);
+    transform:translateY(100%); opacity:1; pointer-events:none;
+    transition:transform .3s cubic-bezier(.2,.8,.3,1), bottom .25s cubic-bezier(.4,0,.2,1);
+    display:flex; flex-direction:column; max-height:80vh;
   }
-  .appchooser.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
-  .appc-title { font-size:18px; font-weight:700; margin-bottom:12px; text-align:center; }
+  .appchooser.open { transform:translateY(0); pointer-events:auto; }
+  /* When the search keyboard is up, lift the whole sheet to sit on top of it. */
+  .device.kbd-open .appchooser.open { bottom:240px; }
+  .appc-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+  .appc-title { font-size:18px; font-weight:700; }
+  .appc-searchbtn {
+    -webkit-appearance:none; appearance:none; border:none; cursor:pointer;
+    flex:0 0 auto; width:40px; height:40px; background:none; color:var(--text);
+    display:flex; align-items:center; justify-content:center; transition:background .12s;
+  }
+  .appc-searchbtn:active { background:var(--surface-2); }
+  .appc-searchbtn.on { background:var(--surface-2); color:var(--hue); }
+  .appc-searchbtn svg { width:20px; height:20px; }
   .appc-search { margin-bottom:16px; }
-  .appc-search input { width:100%; height:44px; border-radius:12px; background:var(--surface); border:1px solid transparent; color:var(--text); padding:0 12px; font-size:15px; outline:none; transition:border-color .15s; }
+  .appc-search input { width:100%; height:44px; background:var(--surface); border:1px solid transparent; color:var(--text); padding:0 14px; font-size:15px; outline:none; transition:border-color .15s; }
   .appc-search input:focus { border-color:var(--hue); }
-  .appc-scroll-area { overflow-y:auto; flex:1; padding:4px; min-height:100px; }
-  .appc-heading { font-size:13px; font-weight:600; color:var(--dim); margin:8px 8px 12px; }
-  .appc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:16px 12px; margin-bottom:16px; }
-  .app-btn { display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; padding:8px 4px; border-radius:12px; border:none; background:none; color:var(--text); outline:none; }
-  .app-btn:active, .app-btn.selected { background:var(--surface-2); }
-  .app-btn:focus-visible .app-ic { box-shadow:0 0 0 2px var(--hue); }
-  .app-btn .app-ic { width:52px; height:52px; border-radius:14px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; font-weight:700; transition:box-shadow .15s; }
-  .app-btn .app-nm { font-size:12px; text-align:center; line-height:1.2; word-break:break-word; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .appc-always { display:flex; align-items:center; gap:10px; margin:16px 4px 4px; cursor:pointer; font-size:14px; color:var(--text); user-select:none; }
+  /* Single horizontal app row — drag/swipe to scroll through */
+  .appc-row {
+    display:flex; gap:6px; overflow-x:auto; overflow-y:hidden;
+    padding:2px 0 4px; margin-bottom:6px; touch-action:pan-x;
+    scrollbar-width:none;
+  }
+  .appc-row::-webkit-scrollbar { display:none; }
+  .app-btn { flex:0 0 auto; width:82px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; padding:8px 4px; border:none; background:none; color:var(--text); outline:none; }
+  .app-btn:active .app-ic { transform:scale(.94); }
+  .app-btn:focus-visible .app-ic, .app-btn.selected .app-ic { box-shadow:0 0 0 2px var(--hue); }
+  .app-btn .app-ic { width:56px; height:56px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; font-weight:700; transition:box-shadow .15s, transform .1s; }
+  .app-btn .app-nm { font-size:12.5px; text-align:center; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .appc-always { display:flex; align-items:center; gap:10px; margin:14px 4px; cursor:pointer; font-size:14px; color:var(--text); user-select:none; }
   .appc-always .box { flex:0 0 auto; width:20px; height:20px; border-radius:6px; border:2px solid #565656; position:relative; transition:background .12s, border-color .12s; }
   .appc-always.on .box { background:var(--accent); border-color:var(--accent); }
   .appc-always.on .box::after { content:""; position:absolute; left:5px; top:1px; width:6px; height:11px; border:solid var(--on-accent); border-width:0 2px 2px 0; transform:rotate(45deg); }
@@ -597,7 +613,7 @@ body {
     background:var(--overlay); border-top:1px solid var(--line); border-radius:var(--radius) var(--radius) 0 0;
     box-shadow:0 -10px 40px rgba(0,0,0,.5); padding:0 0 var(--pad);
     transform:translateY(100%); transition:transform .3s cubic-bezier(.2,.8,.3,1);
-    max-height:66vh; display:flex; flex-direction:column;
+    max-height:82vh; display:flex; flex-direction:column;
   }
   .sharesheet.open { transform:translateY(0); }
 
@@ -660,7 +676,7 @@ body {
   .sh-action-pill:active { transform:scale(.96); background:#383838; }
 
   /* Scrollable interior */
-  .sh-scroll-area { overflow-y:auto; flex:1; touch-action:pan-y; }
+  .sh-scroll-area { overflow-y:auto; flex:1 1 auto; min-height:0; touch-action:pan-y; padding-bottom:6px; }
 
   /* Target icon row — horizontally scrollable, touch-draggable */
   .sh-row {
@@ -780,6 +796,15 @@ body {
   .wd-headtext { flex:1; min-width:0; display:flex; flex-direction:column; }
   .wd-sec { font-size:12px; color:var(--dim); margin-top:2px; }
 
+  /* ============================================================
+     UNIFORM 2px CORNERS — a hair of softening, nothing more.
+     True circles (avatars, toggle knob, spinner, camera shutter,
+     status dots) are re-declared so they stay round.
+     ============================================================ */
+  *, *::before, *::after { border-radius: 2px !important; }
+  .sw::after, .avatar, .ac-id .av, .wd-spin, .sh-ic, .kde-ic,
+  .cam-badge .dot, .cam-shutter { border-radius: 50% !important; }
+
 </style>
 </head>
 <body>
@@ -883,19 +908,18 @@ body {
       </div>
     </div>
 
-    <!-- ============ 7.5 App Chooser ============ -->
+    <!-- ============ 7.5 App Chooser — bottom-up sheet ============ -->
     <div class="appchooser" id="appChooser">
-      <div class="appc-title">Open with</div>
-      <div class="appc-search">
-        <input id="appSearch" type="search" placeholder="Search apps" autocomplete="off" spellcheck="false" enterkeyhint="search">
+      <div class="appc-head">
+        <div class="appc-title">Open with</div>
+        <button class="appc-searchbtn" id="appSearchBtn" type="button" aria-label="Search apps">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        </button>
       </div>
-      <div class="appc-scroll-area">
-        <div class="appc-heading" id="appSuggestedHead">Suggested</div>
-        <div class="appc-grid" id="appGridSuggested"></div>
-        <div class="appc-heading" id="appAllHead">All Apps</div>
-        <div class="appc-grid" id="appGridAll"></div>
-        <button class="app-btn" id="appChooseOther"><div class="app-ic">+</div><div class="app-nm">Choose App</div></button>
+      <div class="appc-search" id="appSearchWrap" hidden>
+        <input id="appSearch" type="search" placeholder="Search query…" autocomplete="off" spellcheck="false" enterkeyhint="search">
       </div>
+      <div class="appc-row" id="appGridAll"></div>
       <label class="appc-always" id="appAlways"><span class="box"></span><span>Always use this app</span></label>
       <div class="ac-actions">
         <button class="chip" id="appCancel" type="button">Cancel</button>
@@ -1856,50 +1880,52 @@ body {
     const APPS = [
       { name: 'Image Viewer', ic: '🖼️' }, { name: 'Comet Media', ic: '🎬' },
       { name: 'Chrome', ic: 'C' }, { name: 'Document Writer', ic: '📝' },
-      { name: 'Code Editor', ic: '💻' }, { name: 'Archive Manager', ic: '📦' }
+      { name: 'Code Editor', ic: '💻' }, { name: 'Archive Manager', ic: '📦' },
+      { name: 'Text Editor', ic: '📄' }, { name: 'File Roller', ic: '🗜️' },
+      { name: 'Firefox', ic: '🦊' }, { name: 'Music', ic: '🎵' },
+      { name: 'Photos', ic: '📷' }, { name: 'Terminal', ic: '❯' },
+      { name: 'PDF Reader', ic: '📕' }, { name: 'Calculator', ic: '🧮' }
     ];
     let appTarget = null;
-    const appChooser = $('appChooser'), appGridSuggested = $('appGridSuggested'), appGridAll = $('appGridAll'), appSearch = $('appSearch');
-    
+    const appChooser = $('appChooser'), appGridAll = $('appGridAll'), appSearch = $('appSearch');
+
+    const selectApp = (btn) => {
+      appChooser.querySelectorAll('.app-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      $('appOpen').disabled = false;
+    };
+    const appTile = (app, sel) => {
+      const btn = document.createElement('button'); btn.className = 'app-btn';
+      if (sel) btn.classList.add('selected');
+      btn.innerHTML = '<div class="app-ic">' + app.ic + '</div><div class="app-nm">' + app.name + '</div>';
+      btn.addEventListener('click', () => selectApp(btn));
+      return btn;
+    };
+
     function renderApps(filterText) {
-      appGridSuggested.innerHTML = '';
       appGridAll.innerHTML = '';
       const f = (filterText || '').toLowerCase();
       const list = APPS.filter(a => a.name.toLowerCase().includes(f));
-      
-      const suggested = list.slice(0, 4);
-      const rest = list.slice(4);
-      
-      $('appSuggestedHead').style.display = suggested.length ? 'block' : 'none';
-      $('appAllHead').style.display = rest.length ? 'block' : 'none';
-      $('appChooseOther').style.display = f ? 'none' : 'flex';
-
-      const selectApp = (btn) => {
-        appChooser.querySelectorAll('.app-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        $('appOpen').disabled = false;
-      };
-
-      suggested.forEach((app, idx) => {
-        const btn = document.createElement('button'); btn.className = 'app-btn';
-        if (idx === 0) btn.classList.add('selected');
-        btn.innerHTML = '<div class="app-ic">' + app.ic + '</div><div class="app-nm">' + app.name + '</div>';
-        btn.addEventListener('click', () => selectApp(btn));
-        appGridSuggested.appendChild(btn);
-      });
-      rest.forEach((app) => {
-        const btn = document.createElement('button'); btn.className = 'app-btn';
-        btn.innerHTML = '<div class="app-ic">' + app.ic + '</div><div class="app-nm">' + app.name + '</div>';
-        btn.addEventListener('click', () => selectApp(btn));
-        appGridAll.appendChild(btn);
-      });
+      // Auto-select the first match so "Open" is live; user can pick another.
+      list.forEach((app, idx) => appGridAll.appendChild(appTile(app, idx === 0)));
       $('appOpen').disabled = list.length === 0;
     }
     appSearch.addEventListener('input', (e) => renderApps(e.target.value));
-    
+
+    // Search icon reveals the query field (which auto-opens the keyboard) and hides again.
+    const appSearchWrap = $('appSearchWrap'), appSearchBtn = $('appSearchBtn');
+    function setSearch(on) {
+      appSearchWrap.hidden = !on;
+      appSearchBtn.classList.toggle('on', on);
+      if (on) { setTimeout(() => appSearch.focus(), 20); }
+      else { appSearch.blur(); if (appSearch.value) { appSearch.value = ''; renderApps(''); } }
+    }
+    appSearchBtn.addEventListener('click', () => setSearch(appSearchWrap.hidden));
+
     function openAppChooser(filename) {
       appTarget = filename;
       appSearch.value = '';
+      setSearch(false);
       $('appAlways').classList.remove('on');
       // desktop default-handler logic: bind the choice to the file's TYPE, not just "this app"
       const ext = (filename.split('.').pop() || '').toLowerCase();
@@ -1907,10 +1933,11 @@ body {
       renderApps('');
       overlays.open(appChooser);
     }
-    function closeAppChooser() { overlays.close(appChooser); appChooser.classList.remove('open'); }
-    
+    function closeAppChooser() { setSearch(false); overlays.close(appChooser); appChooser.classList.remove('open'); }
+
     $('appCancel').addEventListener('click', closeAppChooser);
-    $('appChooseOther').addEventListener('click', () => snack.show('Browse system for app...'));
+    // Drag/swipe left-right to scroll through the app row (touch uses native momentum).
+    Kit.dragScroll(appGridAll, true);
     $('appOpen').addEventListener('click', () => {
       const selected = appChooser.querySelector('.app-btn.selected .app-nm');
       if (selected) snack.show('Opening “' + appTarget + '” in ' + selected.textContent);
