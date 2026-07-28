@@ -596,11 +596,13 @@ body {
     scrollbar-width:none;
   }
   .appc-row::-webkit-scrollbar { display:none; }
-  .app-btn { flex:0 0 auto; width:82px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; padding:8px 4px; border:none; background:none; color:var(--text); outline:none; }
+  /* Tile width tuned so ~4.5 tiles show in the 504px row — the half-tile
+     peeking at the edge signals the row is a scrollable carousel. */
+  .app-btn { flex:0 0 auto; width:107px; display:flex; flex-direction:column; align-items:center; gap:9px; cursor:pointer; padding:8px 4px; border:none; background:none; color:var(--text); outline:none; }
   .app-btn:active .app-ic { transform:scale(.94); }
   .app-btn:focus-visible .app-ic, .app-btn.selected .app-ic { box-shadow:0 0 0 2px var(--hue); }
-  .app-btn .app-ic { width:56px; height:56px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:24px; font-weight:700; transition:box-shadow .15s, transform .1s; }
-  .app-btn .app-nm { font-size:12.5px; text-align:center; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .app-btn .app-ic { width:64px; height:64px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); font-size:28px; font-weight:700; transition:box-shadow .15s, transform .1s; }
+  .app-btn .app-nm { font-size:14px; text-align:center; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .appc-always { display:flex; align-items:center; gap:10px; margin:14px 4px; cursor:pointer; font-size:14px; color:var(--text); user-select:none; }
   .appc-always .box { flex:0 0 auto; width:20px; height:20px; border-radius:6px; border:2px solid #565656; position:relative; transition:background .12s, border-color .12s; }
   .appc-always.on .box { background:var(--accent); border-color:var(--accent); }
