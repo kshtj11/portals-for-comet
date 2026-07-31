@@ -327,6 +327,14 @@ body {
 }
 .device.kbd-open .kbd { transform: translateY(0); }
 .kbd .krow { display: flex; gap: 8px; }
+/* Alphabet vs numpad layers — one shown at a time */
+.kbd .kb-alpha, .kbd .kb-num { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+.kbd .kb-num { display: none; }
+.kbd.numpad .kb-alpha { display: none; }
+.kbd.numpad .kb-num { display: flex; }
+.kbd .kb-num .key { width: 120px; height: 48px; font-size: 26px; }
+.kbd .kb-num .key.abc  { width: 120px; background: #2D2D2D; font-family: 'Inter', sans-serif; font-size: 17px; }
+.kbd .kb-num .key.numback { width: 120px; }
 .kbd .key {
   -webkit-appearance: none; appearance: none;
   border: none; outline: none; box-shadow: none; margin: 0; padding: 0;
@@ -416,9 +424,32 @@ body {
   .crumbs .seg { color:var(--dim); cursor:pointer; }
   .crumbs .seg.cur { color:var(--text); font-weight:600; }
   .crumbs .sep { color:#555; }
-  .savebar { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--line); background:var(--bg); }
+  /* Save bar — bottom-stuck, sits just above the bottom bar. */
+  .savebar { flex:0 0 auto; position:relative; display:flex; align-items:center; gap:12px; padding:12px 16px; border-top:1px solid var(--line); background:var(--bg); transition:transform .25s cubic-bezier(.4,0,.2,1); }
   .savebar .lab { font-size:13px; color:var(--dim); flex:0 0 auto; }
-  .savebar .addr { height:46px; }
+  .savebar .addr { flex:1; height:46px; }
+  /* When the keyboard is up, pin the bar flush on top of it (no gap, no list peeking). */
+  .device.kbd-open #fileScreen .savebar { position:absolute; left:0; right:0; bottom:240px; z-index:65; }
+
+  /* File-extension picker on the right of the name field */
+  .ext-wrap { position:relative; flex:0 0 auto; }
+  .ext-btn { -webkit-appearance:none; appearance:none; cursor:pointer; display:flex; align-items:center; gap:5px; height:46px; padding:0 12px; background:var(--surface-2); border:1px solid var(--line); color:var(--text); font:600 14px/1 'Roboto Mono',monospace; }
+  .ext-btn:active { background:var(--surface-3); }
+  .ext-btn .chev { color:var(--dim); transition:transform .18s; }
+  .ext-btn.open .chev { transform:rotate(180deg); }
+  /* Popup opens UPWARD from the button (bar is at the bottom of the screen).
+     Styled to match the file-manager "More" menu — icon · label · check. */
+  .ext-menu { left:auto; right:0; top:auto; bottom:calc(100% + 10px); width:270px; max-width:none; transform-origin:bottom right; }
+  .ext-menu .popscroll { max-height:300px; scrollbar-width:thin; scrollbar-color:#4a4a4a transparent; cursor:grab; }
+  .ext-menu .popscroll::-webkit-scrollbar { width:7px; }
+  .ext-menu .popscroll::-webkit-scrollbar-track { background:transparent; }
+  .ext-menu .popscroll::-webkit-scrollbar-thumb { background:#4a4a4a; border:2px solid transparent; background-clip:padding-box; }
+  .ext-menu .popscroll::-webkit-scrollbar-thumb:active { background:#666666; background-clip:padding-box; }
+  .ext-menu .menu-item .label { flex:0 0 auto; min-width:58px; font:600 17px/1 'Roboto Mono',monospace; }
+  .ext-menu .menu-item .ext-desc { flex:1; color:var(--dim); font-size:14px; }
+  /* Selected extension — simply highlighted (lighter row), no checkbox. */
+  .ext-menu .menu-item.on { background:var(--surface-3); }
+  .ext-menu .menu-item.on .ext-desc { color:var(--text); }
   .filelist { padding:4px 0 8px; }
   .frow { display:flex; align-items:center; gap:16px; padding:12px 16px; min-height:72px; cursor:pointer; scroll-margin:12px; }
   .frow:active { background:var(--surface); }
@@ -608,6 +639,75 @@ body {
   .appc-always.on .box { background:var(--accent); border-color:var(--accent); }
   .appc-always.on .box::after { content:""; position:absolute; left:5px; top:1px; width:6px; height:11px; border:solid var(--on-accent); border-width:0 2px 2px 0; transform:rotate(45deg); }
 
+  /* ============ Select Image — upload trigger, source sheet, image grid ============ */
+  .img-scn { padding:22px 20px; }
+  .img-scn h1 { font-size:22px; font-weight:700; margin:4px 0 6px; }
+  .img-scn .sub { color:var(--dim); font-size:14px; margin:0 0 18px; }
+  .upload-box {
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+    padding:40px 20px; border:2px dashed #3a3a3a; background:var(--surface);
+    cursor:pointer; text-align:center; transition:background .12s, border-color .12s;
+  }
+  .upload-box:active { background:var(--surface-2); border-color:var(--hue); }
+  .upload-box .up-ic { width:56px; height:56px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); }
+  .upload-box .up-ic svg { width:28px; height:28px; }
+  .upload-box .up-title { font-size:18px; font-weight:700; }
+  .upload-box .up-sub { font-size:13px; color:var(--dim); }
+
+  /* Source bottom sheet — "Open with"-style chrome, three source rows (no checkbox) */
+  .srcsheet {
+    position:absolute; z-index:var(--z-popup); left:0; right:0; bottom:0; margin:0 auto;
+    width:100%; max-width:540px; background:var(--overlay); border-top:1px solid var(--line);
+    box-shadow:0 -10px 40px rgba(0,0,0,.5); padding:18px 12px calc(var(--pad) + 4px);
+    transform:translateY(100%); pointer-events:none;
+    transition:transform .3s cubic-bezier(.2,.8,.3,1); display:flex; flex-direction:column;
+  }
+  .srcsheet.open { transform:translateY(0); pointer-events:auto; }
+  .srcs-title { font-size:18px; font-weight:700; padding:0 6px 14px; }
+  /* Source tiles — "Open with" app-chooser style: icon square + label */
+  .src-row { display:flex; gap:12px; padding:0 4px 4px; }
+  .src-opt { -webkit-appearance:none; appearance:none; border:none; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:9px; width:98px; padding:8px 4px;
+    background:none; color:var(--text); font:inherit; }
+  .src-opt:active .src-ic { transform:scale(.94); }
+  .src-opt .src-ic { width:66px; height:66px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); transition:transform .1s; }
+  .src-opt .src-ic svg { width:30px; height:30px; }
+  .src-opt .src-nm { font-size:14px; text-align:center; }
+
+  /* Image grid picker — full-cover panel, slides up; 3-column preview grid */
+  .imgpicker { position:absolute; inset:0; z-index:var(--z-panel); background:var(--bg);
+    display:flex; flex-direction:column; transform:translateY(100%); pointer-events:none;
+    transition:transform .3s cubic-bezier(.2,.8,.3,1); }
+  .imgpicker.open { transform:translateY(0); pointer-events:auto; }
+  .imgpicker .portalbar .chip { margin-left:auto; }
+  .imgpicker .content { padding:0; }
+  /* List/grid view toggle (two symbols, active one highlighted) */
+  #filesGridPicker .portalbar .view-toggle { margin-left:auto; }
+  #filesGridPicker .portalbar .chip { margin-left:0; }
+  .view-toggle { display:inline-flex; background:var(--surface-2); padding:3px; gap:2px; }
+  .vt-btn { -webkit-appearance:none; appearance:none; border:none; cursor:pointer; background:none; color:var(--dim); width:36px; height:32px; display:flex; align-items:center; justify-content:center; transition:background .12s, color .12s; }
+  .vt-btn.active { background:var(--surface-3); color:var(--text); }
+  .vt-btn svg { width:18px; height:18px; }
+  .imgpicker .ph-sub { padding:2px 16px 8px; font-size:13px; font-weight:600; color:var(--dim); }
+  .img-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; padding:4px; }
+  .img-cell { cursor:pointer; aspect-ratio:1/1; background-size:cover; background-position:center; position:relative; transition:transform .1s; }
+  .img-cell:active { transform:scale(.95); }
+  .img-cell.selected { box-shadow:inset 0 0 0 3px var(--hue); z-index:1; }
+
+  /* File-manager "large icons" view — folder / image / file, each with a name */
+  .fm-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:2px; padding:6px 4px 16px; }
+  .fm-cell { display:flex; flex-direction:column; align-items:center; gap:9px; padding:14px 6px; cursor:pointer; transition:background .12s; }
+  .fm-cell:active { background:var(--surface); }
+  .fm-ico { width:78px; height:78px; display:flex; align-items:center; justify-content:center; position:relative; }
+  .fm-ico.folder { color:#d7b15a; }
+  .fm-ico.folder svg { width:78px; height:78px; }
+  .fm-ico.img { width:74px; height:74px; background-size:cover; background-position:center; }
+  .fm-ico.file { color:var(--dim); }
+  .fm-ico.file svg { width:62px; height:78px; }
+  .fm-ico.file .fm-ext { position:absolute; left:0; right:0; bottom:19px; text-align:center; font:800 11px/1 'Roboto Mono',monospace; color:var(--text); letter-spacing:.3px; }
+  .fm-name { font-size:12.5px; line-height:1.25; text-align:center; color:var(--text); max-width:100%;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
+
   /* ============ 7.6 Share Sheet ============ */
   .sharesheet {
     position:absolute; top:auto; z-index:var(--z-popup); bottom:0; left:0; right:0;
@@ -744,21 +844,24 @@ body {
   .cam-shutter:active { transform:scale(.92); }
   .cam-hint { font-size:13px; color:var(--dim); }
 
-  /* central permission dialog — 3 choices + top-right link to the settings page */
-  .permdialog { position:absolute; z-index:var(--z-popup); top:50%; left:50%; width:86%; max-width:360px;
-                transform:translate(-50%,-50%) scale(.92); opacity:0; pointer-events:none;
-                background:var(--overlay); border:1px solid #333; border-radius:22px; box-shadow:0 30px 80px rgba(0,0,0,.7);
-                padding:24px 20px 18px; text-align:center; transition:opacity .2s, transform .24s cubic-bezier(.34,1.2,.5,1); }
-  .permdialog.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  /* permission dialog — bottom-up sheet, 3 choices + top-right link to settings */
+  .permdialog { position:absolute; z-index:var(--z-popup); left:0; right:0; bottom:0; margin:0 auto;
+                width:100%; max-width:540px;
+                transform:translateY(100%); pointer-events:none;
+                background:var(--overlay); border-top:1px solid var(--line); box-shadow:0 -10px 40px rgba(0,0,0,.5);
+                padding:26px 20px calc(var(--pad) + 4px); text-align:center;
+                transition:transform .3s cubic-bezier(.2,.8,.3,1); }
+  .permdialog.open { transform:translateY(0); pointer-events:auto; }
   .perm-settings { position:absolute; top:14px; right:14px; width:38px; height:38px; border-radius:11px; border:none;
                    background:var(--surface-3); color:var(--dim); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .08s,color .12s; }
   .perm-settings:active { transform:scale(.94); color:var(--text); }
   .perm-ic { width:56px; height:56px; margin:2px auto 14px; border-radius:16px; background:var(--surface-3); display:flex; align-items:center; justify-content:center; color:var(--text); }
   .perm-q { font-size:18px; font-weight:700; line-height:1.35; margin:0 6px; }
   .perm-sub { font-size:13.5px; color:var(--dim); line-height:1.5; margin:8px 4px 18px; }
-  .perm-opts { display:flex; flex-direction:column; gap:8px; }
-  .perm-opt { -webkit-appearance:none; appearance:none; border:none; cursor:pointer; height:50px; border-radius:14px;
-              background:var(--surface-2); color:var(--text); font:600 15px/1 inherit; transition:background .12s, box-shadow .12s, transform .08s; }
+  .perm-opts { display:flex; flex-direction:row; gap:8px; }
+  .perm-opt { flex:1; min-width:0; -webkit-appearance:none; appearance:none; border:none; cursor:pointer;
+              min-height:64px; padding:8px 6px; border-radius:14px; display:flex; align-items:center; justify-content:center; text-align:center;
+              background:var(--surface-2); color:var(--text); font:600 14px/1.25 inherit; transition:background .12s, box-shadow .12s, transform .08s; }
   .perm-opt:active { transform:scale(.98); }
   .perm-opt.primary { background:var(--accent); color:var(--on-accent); }
   .perm-opt.danger  { color:#df6b62; }
@@ -829,11 +932,29 @@ body {
         </form>
         <button class="chip" id="searchCancel">Cancel</button>
       </div>
+      <div class="content filelist" id="list"></div>
       <form class="savebar" id="saveBar" hidden>
         <span class="lab">Name</span>
         <div class="addr"><input id="fileName" type="text" placeholder="Untitled document" autocomplete="off" spellcheck="false" enterkeyhint="done"></div>
+        <div class="ext-wrap">
+          <button type="button" class="ext-btn" id="extBtn" aria-haspopup="listbox" aria-expanded="false"><span id="extLabel">.pdf</span><svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
+          <div class="popup ext-menu" id="extMenu">
+            <div class="popscroll" id="extScroll">
+              <div class="menu-item ext-item on" data-ext=".pdf"><span class="label">.pdf</span><span class="ext-desc">PDF document</span></div>
+              <div class="menu-item ext-item" data-ext=".docx"><span class="label">.docx</span><span class="ext-desc">Word document</span></div>
+              <div class="menu-item ext-item" data-ext=".odt"><span class="label">.odt</span><span class="ext-desc">OpenDocument</span></div>
+              <div class="menu-item ext-item" data-ext=".txt"><span class="label">.txt</span><span class="ext-desc">Plain text</span></div>
+              <div class="menu-item ext-item" data-ext=".md"><span class="label">.md</span><span class="ext-desc">Markdown</span></div>
+              <div class="menu-item ext-item" data-ext=".rtf"><span class="label">.rtf</span><span class="ext-desc">Rich text</span></div>
+              <div class="menu-item ext-item" data-ext=".html"><span class="label">.html</span><span class="ext-desc">Web page</span></div>
+              <div class="menu-item ext-item" data-ext=".csv"><span class="label">.csv</span><span class="ext-desc">CSV table</span></div>
+              <div class="menu-item ext-item" data-ext=".png"><span class="label">.png</span><span class="ext-desc">PNG image</span></div>
+              <div class="menu-item ext-item" data-ext=".jpg"><span class="label">.jpg</span><span class="ext-desc">JPEG image</span></div>
+              <div class="menu-item ext-item" data-ext=".zip"><span class="label">.zip</span><span class="ext-desc">ZIP archive</span></div>
+            </div>
+          </div>
+        </div>
       </form>
-      <div class="content filelist" id="list"></div>
       <div class="bottombar filebar" id="bottombar">
         <button class="iconbtn" id="upBtn" aria-label="Up one folder"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
         <span class="grow"></span>
@@ -901,12 +1022,13 @@ body {
       <div class="popscroll">
         <div class="menu-item" data-view="open"><span class="nn">1</span><span class="label">Open File</span></div>
         <div class="menu-item" data-view="save"><span class="nn">2</span><span class="label">Save File</span></div>
-        <div class="menu-item" data-view="access"><span class="nn">3</span><span class="label">Access</span></div>
-        <div class="menu-item" data-view="wifi"><span class="nn">4</span><span class="label">Wi-Fi Connect</span></div>
-        <div class="menu-item" data-view="bt"><span class="nn">5</span><span class="label">Bluetooth Pairing</span></div>
-        <div class="menu-item" data-view="appchooser"><span class="nn">6</span><span class="label">App Chooser</span></div>
-        <div class="menu-item" data-view="share"><span class="nn">7</span><span class="label">Share</span></div>
-        <div class="menu-item" data-view="perm"><span class="nn">8</span><span class="label">Permissions</span></div>
+        <div class="menu-item" data-view="selectimage"><span class="nn">3</span><span class="label">Select Image</span></div>
+        <div class="menu-item" data-view="access"><span class="nn">4</span><span class="label">Access</span></div>
+        <div class="menu-item" data-view="wifi"><span class="nn">5</span><span class="label">Wi-Fi Connect</span></div>
+        <div class="menu-item" data-view="bt"><span class="nn">6</span><span class="label">Bluetooth Pairing</span></div>
+        <div class="menu-item" data-view="appchooser"><span class="nn">7</span><span class="label">App Chooser</span></div>
+        <div class="menu-item" data-view="share"><span class="nn">8</span><span class="label">Share</span></div>
+        <div class="menu-item" data-view="perm"><span class="nn">9</span><span class="label">Permissions</span></div>
       </div>
     </div>
 
@@ -937,6 +1059,76 @@ body {
       <nav class="crumbs"><span class="seg">Locations</span><span class="sep">/</span><span class="seg">Documents</span><span class="sep">/</span><span class="seg cur">Downloads</span></nav>
       <div class="list">
         <div class="frow focus" id="appChooserTrigger"><span class="fico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></span><span class="fmeta"><span class="fname">archive.zip</span><span class="fdate">15 Jul 2025</span></span></div>
+      </div>
+    </div>
+
+    <!-- ============ Select Image — screen + source sheet + grid picker ============ -->
+    <div class="screen" id="selectImageScreen" hidden>
+      <header class="portalbar">
+        <span class="pb-title">Edit Profile</span>
+        <span class="pb-app"><span class="appdot">S</span><span>Settings</span></span>
+      </header>
+      <div class="content">
+        <div class="img-scn">
+          <h1>Profile photo</h1>
+          <p class="sub">Choose a picture from your camera or files.</p>
+          <div class="upload-box" id="imgUploadTrigger">
+            <span class="up-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+            <span class="up-title">Upload image</span>
+            <span class="up-sub">Tap to choose a source</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="srcsheet" id="imgSourceSheet">
+      <div class="srcs-title">Select Image</div>
+      <div class="src-row">
+        <button class="src-opt" data-src="camera" type="button">
+          <span class="src-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+          <span class="src-nm">Camera</span>
+        </button>
+        <button class="src-opt" data-src="photos" type="button">
+          <span class="src-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
+          <span class="src-nm">Photos</span>
+        </button>
+        <button class="src-opt" data-src="files" type="button">
+          <span class="src-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="src-nm">Files</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Photos → photos-app grid -->
+    <div class="imgpicker" id="imgPicker">
+      <header class="portalbar">
+        <span class="pb-title">Photos</span>
+        <button class="chip" id="photoCancel" type="button">Cancel</button>
+      </header>
+      <div class="ph-sub">Recents</div>
+      <div class="content"><div class="img-grid" id="photoGrid"></div></div>
+    </div>
+
+    <!-- Files → the file manager, in 3-column grid view -->
+    <div class="imgpicker" id="filesGridPicker">
+      <header class="portalbar">
+        <span class="pb-title">File Manager</span>
+        <div class="view-toggle" id="viewToggle">
+          <button class="vt-btn" data-view="list" type="button" aria-label="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
+          <button class="vt-btn active" data-view="grid" type="button" aria-label="Grid view"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+        </div>
+        <button class="chip" id="filesCancel" type="button">Cancel</button>
+      </header>
+      <nav class="crumbs"><span class="seg">Home</span><span class="sep">/</span><span class="seg cur">Pictures</span></nav>
+      <div class="content">
+        <div class="fm-grid" id="filesGrid"></div>
+        <div class="list" id="filesList" hidden></div>
+      </div>
+      <div class="bottombar filebar">
+        <button class="iconbtn" aria-label="Up one folder"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <span class="grow"></span>
+        <button class="iconbtn" aria-label="Search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+        <button class="iconbtn" aria-label="More"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
       </div>
     </div>
 
@@ -1120,7 +1312,7 @@ body {
       </div>
       <div class="ac-id"><span class="av">m</span><span class="nm">mecha · Administrator</span></div>
       <div class="ac-field" id="acField">
-        <input id="pw" type="password" placeholder="Password" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="Password">
+        <input id="pw" type="password" placeholder="Password" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="Password" data-numpad>
         <button class="ac-eye" id="eyeBtn" type="button" aria-label="Show password"><svg id="eyeIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
       <div class="ac-err" id="acErr">Sorry, that didn’t work. Please try again.</div>
@@ -1166,10 +1358,18 @@ body {
 
     <!-- ============ Shared on-screen keyboard (device-kit Comet layout) ============ -->
     <div class="kbd" id="kbd">
-      <div class="krow"><button class="key" data-k="q">q</button><button class="key" data-k="w">w</button><button class="key" data-k="e">e</button><button class="key" data-k="r">r</button><button class="key" data-k="t">t</button><button class="key" data-k="y">y</button><button class="key" data-k="u">u</button><button class="key" data-k="i">i</button><button class="key" data-k="o">o</button><button class="key" data-k="p">p</button></div>
-      <div class="krow"><button class="key" data-k="a">a</button><button class="key" data-k="s">s</button><button class="key" data-k="d">d</button><button class="key" data-k="f">f</button><button class="key" data-k="g">g</button><button class="key" data-k="h">h</button><button class="key" data-k="j">j</button><button class="key" data-k="k">k</button><button class="key" data-k="l">l</button></div>
-      <div class="krow"><button class="key shift" data-k="shift">⇧</button><button class="key" data-k="z">z</button><button class="key" data-k="x">x</button><button class="key" data-k="c">c</button><button class="key" data-k="v">v</button><button class="key" data-k="b">b</button><button class="key" data-k="n">n</button><button class="key" data-k="m">m</button><button class="key back" data-k="back">⌫</button></div>
-      <div class="krow"><button class="key sym" data-k="sym">?123</button><button class="key fn" data-k="fn">Fn</button><button class="key comma" data-k=",">,</button><button class="key space" data-k=" "></button><button class="key dot" data-k=".">.</button><button class="key enter" data-k="enter"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.64063 13.6406L5.96046e-08 9L4.64063 4.35938V13.6406ZM3.21875 9.84375V8.15625H17.2656V9.84375H3.21875ZM15.625 9.84375V-4.76837e-07H17.3125V9.84375H15.625ZM11.0781 1.6875V-4.76837e-07H17.2656V1.6875H11.0781Z" fill="#DDDDDD"/></svg></button></div>
+      <div class="kb-alpha">
+        <div class="krow"><button class="key" data-k="q">q</button><button class="key" data-k="w">w</button><button class="key" data-k="e">e</button><button class="key" data-k="r">r</button><button class="key" data-k="t">t</button><button class="key" data-k="y">y</button><button class="key" data-k="u">u</button><button class="key" data-k="i">i</button><button class="key" data-k="o">o</button><button class="key" data-k="p">p</button></div>
+        <div class="krow"><button class="key" data-k="a">a</button><button class="key" data-k="s">s</button><button class="key" data-k="d">d</button><button class="key" data-k="f">f</button><button class="key" data-k="g">g</button><button class="key" data-k="h">h</button><button class="key" data-k="j">j</button><button class="key" data-k="k">k</button><button class="key" data-k="l">l</button></div>
+        <div class="krow"><button class="key shift" data-k="shift">⇧</button><button class="key" data-k="z">z</button><button class="key" data-k="x">x</button><button class="key" data-k="c">c</button><button class="key" data-k="v">v</button><button class="key" data-k="b">b</button><button class="key" data-k="n">n</button><button class="key" data-k="m">m</button><button class="key back" data-k="back">⌫</button></div>
+        <div class="krow"><button class="key sym" data-k="sym">?123</button><button class="key fn" data-k="fn">Fn</button><button class="key comma" data-k=",">,</button><button class="key space" data-k=" "></button><button class="key dot" data-k=".">.</button><button class="key enter" data-k="enter"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.64063 13.6406L5.96046e-08 9L4.64063 4.35938V13.6406ZM3.21875 9.84375V8.15625H17.2656V9.84375H3.21875ZM15.625 9.84375V-4.76837e-07H17.3125V9.84375H15.625ZM11.0781 1.6875V-4.76837e-07H17.2656V1.6875H11.0781Z" fill="#DDDDDD"/></svg></button></div>
+      </div>
+      <div class="kb-num">
+        <div class="krow"><button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button></div>
+        <div class="krow"><button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button></div>
+        <div class="krow"><button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button></div>
+        <div class="krow"><button class="key abc" data-k="abc">ABC</button><button class="key" data-k="0">0</button><button class="key back numback" data-k="back">⌫</button></div>
+      </div>
     </div>
 
     <!-- ============ Shared snackbar + edge-back ============ -->
@@ -1307,8 +1507,9 @@ body {
     const isTyping = (el) => el && el.tagName === 'INPUT' && TYPING.includes(el.type || 'text');
     const refreshShift = () => kbd.classList.toggle('shift-on', shiftOn); // .kbd.shift-on
 
-    function open(el) { input = el; device.classList.add('kbd-open'); }
-    function close() { device.classList.remove('kbd-open'); input = null; shiftOn = false; refreshShift(); }
+    // Fields tagged data-numpad open straight into the numeric layer.
+    function open(el) { input = el; device.classList.add('kbd-open'); kbd.classList.toggle('numpad', el.hasAttribute('data-numpad')); }
+    function close() { device.classList.remove('kbd-open'); kbd.classList.remove('numpad'); input = null; shiftOn = false; refreshShift(); }
 
     // text fields auto-open the keyboard; non-text controls (sliders, etc.) don't
     device.addEventListener('focusin', (e) => { if (isTyping(e.target)) open(e.target); });
@@ -1335,7 +1536,9 @@ body {
       const k = e.target.closest('.key'); if (!k || !input) return;
       const v = k.getAttribute('data-k');
       if (v === 'shift') { shiftOn = !shiftOn; refreshShift(); return; }
-      if (v === 'sym' || v === 'fn') return;              // visual only
+      if (v === 'sym') { kbd.classList.add('numpad'); return; }    // ?123 → numpad
+      if (v === 'abc') { kbd.classList.remove('numpad'); return; } // ABC → alphabet
+      if (v === 'fn') return;                                       // visual only
       if (v === 'back') { del(); return; }
       if (v === 'enter') {
         const f = input.form;
@@ -1470,14 +1673,15 @@ body {
        ROLLING NAVIGATOR  (tap = next · long-press = named menu)
        ============================================================ */
     const VIEWS = [
-      { id:'open',       n:1, name:'Open File' },
-      { id:'save',       n:2, name:'Save File' },
-      { id:'access',     n:3, name:'Access' },
-      { id:'wifi',       n:4, name:'Wi-Fi Connect' },
-      { id:'bt',         n:5, name:'Bluetooth Pairing' },
-      { id:'appchooser', n:6, name:'App Chooser' },
-      { id:'share',      n:7, name:'Share Portal' },
-      { id:'perm',       n:8, name:'Permissions' }
+      { id:'open',        n:1, name:'Open File' },
+      { id:'save',        n:2, name:'Save File' },
+      { id:'selectimage', n:3, name:'Select Image' },
+      { id:'access',      n:4, name:'Access' },
+      { id:'wifi',        n:5, name:'Wi-Fi Connect' },
+      { id:'bt',          n:6, name:'Bluetooth Pairing' },
+      { id:'appchooser',  n:7, name:'App Chooser' },
+      { id:'share',       n:8, name:'Share Portal' },
+      { id:'perm',        n:9, name:'Permissions' }
     ];
     let view = 'open';
 
@@ -1485,6 +1689,7 @@ body {
       const v = VIEWS.find(x => x.id === id) || VIEWS[0];
       view = v.id;
       $('fileScreen').hidden       = !(v.id === 'open' || v.id === 'save');
+      $('selectImageScreen').hidden = v.id !== 'selectimage';
       $('accessScreen').hidden     = v.id !== 'access';
       $('wifiScreen').hidden       = v.id !== 'wifi';
       $('btScreen').hidden         = v.id !== 'bt';
@@ -1497,6 +1702,7 @@ body {
       if (typeof closeWifiDialog === 'function') closeWifiDialog();
       if (typeof closeShare === 'function') closeShare();
       $('permPage').classList.remove('open');
+      ['imgPicker','filesGridPicker'].forEach(id => { const el = $(id); if (el) el.classList.remove('open'); });
       // roll the number
       const num = $('navNum');
       num.textContent = v.n;
@@ -1615,7 +1821,7 @@ body {
     function activate(node, i) {
       focusIdx = i;
       if (node.type === 'dir') { path.push(node); filter=''; focusIdx = 0; if ($('fileScreen').classList.contains('searching')) closeSearch(); renderFiles(); return; }
-      if (view === 'save') { $('fileName').value = node.name.replace(/\.[^.]+$/, ''); snack.show('Overwrite “' + node.name + '”? Tap Save to confirm'); return; }
+      if (view === 'save') { $('fileName').value = node.name.replace(/\.[^.]+$/, ''); const m = node.name.match(/(\.[^.]+)$/); if (m) setExt(m[1].toLowerCase()); snack.show('Overwrite “' + node.name + '”? Tap Save to confirm'); return; }
       snack.show('Returned “' + node.name + '” to ' + APP);
     }
     function goUp() { if (path.length > 1) { path.pop(); filter=''; focusIdx = 0; renderFiles(); } }
@@ -1636,7 +1842,29 @@ body {
       else if (act === 'newfolder') { const f = dir('New folder', 'just now', []); here().children.push(f); snack.show('Folder created', () => { const x = here().children.indexOf(f); if (x>=0) here().children.splice(x,1); renderFiles(); }, 'Undo'); }
       overlays.close(menu); renderFiles();
     }));
-    $('saveBtn').addEventListener('click', () => { const name = ($('fileName').value || 'Untitled document').trim(); snack.show('Saved “' + name + '” to ' + here().name); });
+    // File-extension picker — scrollable contextual menu, opens upward from the save bar.
+    const extMenu = $('extMenu'), extBtn = $('extBtn');
+    let currentExt = '.pdf';
+    function setExt(ext) {
+      const item = extMenu.querySelector('.ext-item[data-ext="' + ext + '"]');
+      if (!item) return false;
+      currentExt = ext; $('extLabel').textContent = ext;
+      extMenu.querySelectorAll('.ext-item').forEach(x => x.classList.toggle('on', x === item));
+      return true;
+    }
+    function closeExt() { overlays.close(extMenu); extBtn.classList.remove('open'); extBtn.setAttribute('aria-expanded', 'false'); }
+    extBtn.addEventListener('click', () => {
+      if (overlays.isOpen(extMenu)) { closeExt(); return; }
+      overlays.open(extMenu); extBtn.classList.add('open'); extBtn.setAttribute('aria-expanded', 'true');
+    });
+    extMenu.querySelectorAll('.ext-item').forEach(it => it.addEventListener('click', () => { setExt(it.dataset.ext); closeExt(); }));
+    Kit.dragScroll($('extScroll'));   // pointer-drag to scroll (mouse); touch uses native momentum
+    $('scrim').addEventListener('click', () => { extBtn.classList.remove('open'); extBtn.setAttribute('aria-expanded', 'false'); });
+
+    $('saveBtn').addEventListener('click', () => {
+      const base = ($('fileName').value || 'Untitled document').trim().replace(/\.[^.\/]+$/, '');
+      snack.show('Saved “' + base + currentExt + '” to ' + here().name);
+    });
     $('saveBar').addEventListener('submit', (e) => { e.preventDefault(); $('fileName').blur(); });
 
     /* ============================================================
@@ -1953,6 +2181,107 @@ body {
         openAppChooser('archive.zip');
       });
     }
+
+    /* ============================================================
+       SELECT IMAGE  (source sheet → image grid picker)
+       ============================================================ */
+    const imgSourceSheet = $('imgSourceSheet'), imgPicker = $('imgPicker'), filesGridPicker = $('filesGridPicker');
+    // Gradient placeholders standing in for photo thumbnails.
+    const IMAGES = [
+      { name:'sunset_beach.jpg',  g:'linear-gradient(160deg,#ff9966,#ff5e62)' },
+      { name:'forest_trail.jpg',  g:'linear-gradient(160deg,#134e5e,#71b280)' },
+      { name:'city_night.jpg',    g:'linear-gradient(160deg,#0f2027,#2c5364)' },
+      { name:'desert_dunes.jpg',  g:'linear-gradient(160deg,#e6b980,#a86e3b)' },
+      { name:'ocean_wave.jpg',    g:'linear-gradient(160deg,#2193b0,#6dd5ed)' },
+      { name:'lavender.jpg',      g:'linear-gradient(160deg,#a18cd1,#fbc2eb)' },
+      { name:'autumn_leaves.jpg', g:'linear-gradient(160deg,#d38312,#a83279)' },
+      { name:'snow_peak.jpg',     g:'linear-gradient(160deg,#e0eafc,#8e9eab)' },
+      { name:'coral_reef.jpg',    g:'linear-gradient(160deg,#ff5f6d,#ffc371)' },
+      { name:'meadow.jpg',        g:'linear-gradient(160deg,#56ab2f,#a8e063)' },
+      { name:'twilight.jpg',      g:'linear-gradient(160deg,#4b6cb7,#182848)' },
+      { name:'peach_sky.jpg',     g:'linear-gradient(160deg,#ffecd2,#fcb69f)' },
+      { name:'mint_fresh.jpg',    g:'linear-gradient(160deg,#00b09b,#96c93d)' },
+      { name:'berry.jpg',         g:'linear-gradient(160deg,#c31432,#240b36)' },
+      { name:'goldenhour.jpg',    g:'linear-gradient(160deg,#f7971e,#ffd200)' }
+    ];
+    function closePickers() { imgPicker.classList.remove('open'); filesGridPicker.classList.remove('open'); }
+
+    // Photos → clean grid of image thumbnails
+    IMAGES.forEach(img => {
+      const c = document.createElement('div');
+      c.className = 'img-cell'; c.style.backgroundImage = img.g; c.title = img.name;
+      c.addEventListener('click', () => { snack.show('Selected “' + img.name + '”'); closePickers(); });
+      $('photoGrid').appendChild(c);
+    });
+
+    // Files → "large icons" file view: folders, image previews, and typed files
+    const folderSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+    const fileSvg   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9z"/><path d="M13 3v6h6"/></svg>';
+    const FILES = [
+      { type:'folder', name:'gv typo books' },
+      { type:'image',  name:'sunset_beach.jpg', g:IMAGES[0].g },
+      { type:'file',   name:'report.pdf',  ext:'PDF' },
+      { type:'folder', name:'Screenshots' },
+      { type:'image',  name:'forest_trail.jpg', g:IMAGES[1].g },
+      { type:'file',   name:'budget.xlsx', ext:'XLSX' },
+      { type:'image',  name:'city_night.jpg', g:IMAGES[2].g },
+      { type:'folder', name:'Camera Roll' },
+      { type:'file',   name:'notes.txt',   ext:'TXT' },
+      { type:'image',  name:'ocean_wave.jpg', g:IMAGES[4].g },
+      { type:'file',   name:'design.svg',  ext:'SVG' },
+      { type:'image',  name:'lavender.jpg', g:IMAGES[5].g }
+    ];
+    FILES.forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'fm-cell';
+      let ico;
+      if (f.type === 'folder')     ico = '<span class="fm-ico folder">' + folderSvg + '</span>';
+      else if (f.type === 'image') ico = '<span class="fm-ico img" style="background-image:' + f.g + '"></span>';
+      else                         ico = '<span class="fm-ico file">' + fileSvg + '<span class="fm-ext">' + f.ext + '</span></span>';
+      cell.innerHTML = ico + '<span class="fm-name">' + f.name + '</span>';
+      cell.addEventListener('click', () => {
+        if (f.type === 'folder') { snack.show('Opened “' + f.name + '”'); }
+        else { snack.show('Selected “' + f.name + '”'); closePickers(); }
+      });
+      $('filesGrid').appendChild(cell);
+    });
+
+    // Same items as portal-1-style list rows (the alternate view)
+    const folderLine = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+    const imageLine  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+    const fileLine   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>';
+    FILES.forEach(f => {
+      const row = document.createElement('div'); row.className = 'frow';
+      const icon = f.type === 'folder' ? folderLine : f.type === 'image' ? imageLine : fileLine;
+      const meta = f.type === 'folder' ? 'Folder' : f.type === 'image' ? 'Image' : (f.ext + ' file');
+      row.innerHTML = '<span class="fico">' + icon + '</span><span class="fmeta"><span class="fname">' + f.name + '</span><span class="fdate">' + meta + '</span></span>';
+      row.addEventListener('click', () => {
+        if (f.type === 'folder') snack.show('Opened “' + f.name + '”');
+        else { snack.show('Selected “' + f.name + '”'); closePickers(); }
+      });
+      $('filesList').appendChild(row);
+    });
+
+    // View toggle — image upload defaults to grid, file upload to list; cycle between them.
+    const viewToggle = $('viewToggle');
+    function setFilesView(v) {
+      $('filesGrid').hidden = v !== 'grid';
+      $('filesList').hidden = v !== 'list';
+      viewToggle.querySelectorAll('.vt-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+    }
+    viewToggle.querySelectorAll('.vt-btn').forEach(b => b.addEventListener('click', () => setFilesView(b.dataset.view)));
+    function openPhotos()    { overlays.closeAll(); imgPicker.classList.add('open'); }
+    function openFilesGrid() { overlays.closeAll(); setFilesView('grid'); filesGridPicker.classList.add('open'); }
+    $('imgUploadTrigger').addEventListener('click', () => overlays.open(imgSourceSheet));
+    imgSourceSheet.querySelectorAll('.src-opt').forEach(b => b.addEventListener('click', () => {
+      const s = b.dataset.src;
+      overlays.close(imgSourceSheet);
+      if (s === 'photos') openPhotos();
+      else if (s === 'files') openFilesGrid();
+      else snack.show('Opening camera…');
+    }));
+    $('photoCancel').addEventListener('click', closePickers);
+    $('filesCancel').addEventListener('click', closePickers);
 
     /* ============================================================
        7.7 PERMISSIONS  (dialog + Android/iOS settings page)
